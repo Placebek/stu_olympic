@@ -45,9 +45,15 @@ class UploadResponse(BaseModel):
     filename: str
     original_name: str
     uploaded_at: datetime
+    is_checked: bool
+    checked_at: datetime | None = None
 
     class Config:
         from_attributes = True
+
+
+class UploadCheckUpdate(BaseModel):
+    is_checked: bool
 
 
 # ---------- QUIZ — Admin ----------

@@ -1,12 +1,13 @@
 """Административные эндпоинты."""
 import secrets
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.database import get_db
 from app.models.models import QRCode, Team, Upload, QuizQuestion, TeamQuizSession
-from app.schemas.schemas import QuizQuestionCreate, QuizQuestionResponse, TeamQuizResult
+from app.schemas.schemas import QuizQuestionCreate, QuizQuestionResponse, TeamQuizResult, UploadCheckUpdate, UploadResponse
 from app.routers.quiz import _build_team_result
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -63,6 +64,73 @@ async def list_uploads(db: AsyncSession = Depends(get_db)):
     return [
         {"id": u.id, "team_name": name, "original_name": u.original_name,
          "filename": u.filename, "uploaded_at": u.uploaded_at}
+        for u, name in result.all()
+    ]
+
+
+# ─── Upload — проверка работ ──────────────────────────────────────────────────
+
+@router.patch(
+    "/uploads/{upload_id}/check",
+    response_model=UploadResponse,
+    summary="Отметить файл как проверенный / не проверенный",
+)
+async def check_upload(
+    upload_id: int,
+    body: UploadCheckUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Устанавливает флаг проверки для загруженного файла.
+
+    -   — работа проверена
+    -  — снять отметку
+    """
+    result = await db.execute(
+        select(Upload, Team.name).join(Team, Upload.team_id == Team.id)
+        .where(Upload.id == upload_id)
+    )
+    row = result.one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Файл не найден")
+
+    upload, team_name = row
+    upload.is_checked = body.is_checked
+    upload.checked_at = datetime.utcnow() if body.is_checked else None
+    await db.commit()
+    await db.refresh(upload)
+
+    return UploadResponse(
+        id=upload.id,
+        team_name=team_name,
+        filename=upload.filename,
+        original_name=upload.original_name,
+        uploaded_at=upload.uploaded_at,
+        is_checked=upload.is_checked,
+        checked_at=upload.checked_at,
+    )
+
+
+@router.get(
+    "/uploads/unchecked",
+    summary="Список непроверенных файлов",
+)
+async def unchecked_uploads(db: AsyncSession = Depends(get_db)):
+    """Только файлы которые ещё не проверены."""    
+    result = await db.execute(
+        select(Upload, Team.name)
+        .join(Team, Upload.team_id == Team.id)
+        .where(Upload.is_checked == False)
+        .order_by(Upload.uploaded_at.asc())
+    )
+    return [
+        {
+            "id": u.id, "team_name": name,
+            "original_name": u.original_name,
+            "filename": u.filename,
+            "uploaded_at": u.uploaded_at,
+            "is_checked": u.is_checked,
+        }
         for u, name in result.all()
     ]
 

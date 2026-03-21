@@ -64,6 +64,8 @@ async def upload_file(
         filename=upload.filename,
         original_name=upload.original_name,
         uploaded_at=upload.uploaded_at,
+        is_checked=upload.is_checked,
+        checked_at=upload.checked_at,
     )
 
 
@@ -84,6 +86,8 @@ async def get_my_uploads(
             filename=u.filename,
             original_name=u.original_name,
             uploaded_at=u.uploaded_at,
+            is_checked=u.is_checked,
+            checked_at=u.checked_at,
         )
         for u in uploads
     ]
