@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import qr, team, upload, admin, tasks
+from app.routers import qr, team, upload, admin, tasks, quiz
 
 
 @asynccontextmanager
@@ -55,6 +55,7 @@ app.include_router(team.router)
 app.include_router(upload.router)
 app.include_router(admin.router)
 app.include_router(tasks.router)
+app.include_router(quiz.router)
 
 @app.get("/", tags=["Root"])
 async def root():
