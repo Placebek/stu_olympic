@@ -58,12 +58,14 @@ class UploadCheckUpdate(BaseModel):
 
 # ---------- QUIZ — Admin ----------
 class QuizQuestionCreate(BaseModel):
-    text: str
-    options: list[str]
+    text_kz: str
+    text_ru: str
+    options_kz: list[str]
+    options_ru: list[str]
     correct_index: int
     category: Literal["network", "database"] = "network"
 
-    @field_validator("options")
+    @field_validator("options_kz", "options_ru")
     @classmethod
     def validate_options(cls, v: list[str]) -> list[str]:
         if len(v) < 2:
@@ -75,7 +77,7 @@ class QuizQuestionCreate(BaseModel):
     @field_validator("correct_index")
     @classmethod
     def validate_correct_index(cls, v: int, info) -> int:
-        options = info.data.get("options", [])
+        options = info.data.get("options_kz", [])
         if options and v >= len(options):
             raise ValueError("correct_index выходит за пределы списка options")
         if v < 0:
@@ -84,8 +86,10 @@ class QuizQuestionCreate(BaseModel):
 
 class QuizQuestionResponse(BaseModel):
     id: int
-    text: str
-    options: list[str]
+    text_kz: str
+    text_ru: str
+    options_kz: list[str]
+    options_ru: list[str]
     correct_index: int
     category: str
     created_at: datetime
@@ -97,9 +101,11 @@ class QuizQuestionResponse(BaseModel):
 # ---------- QUIZ — Team ----------
 class QuizQuestionPublic(BaseModel):
     id: int
-    text: str
-    options: list[str]
-    category: str  # команда видит категорию, но не правильный ответ
+    text_kz: str
+    text_ru: str
+    options_kz: list[str]
+    options_ru: list[str]
+    category: str
 
 class QuizSessionResponse(BaseModel):
     session_id: int
@@ -126,9 +132,11 @@ class AnswerResult(BaseModel):
 # ---------- QUIZ — Results ----------
 class TeamAnswerDetail(BaseModel):
     question_id: int
-    question_text: str
+    question_text_kz: str
+    question_text_ru: str
     category: str
-    options: list[str]
+    options_kz: list[str]
+    options_ru: list[str]
     correct_index: int
     chosen_index: int
     is_correct: bool

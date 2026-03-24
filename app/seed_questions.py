@@ -1,5 +1,5 @@
 """
-Загружает 25 вопросов по сетям + 25 по БД через POST /admin/quiz/questions
+Загружает 25 вопросов по сетям + 25 по БД (двуязычные: kz + ru)
 Запуск: python seed_questions.py
 """
 import asyncio
@@ -9,72 +9,421 @@ BASE_URL = "http://localhost:8000"
 
 QUESTIONS = [
     # ══════════════════════════════════════════
-    #  СЕТИ — category="network"  (1–25)
+    #  СЕТИ — category="network"
     # ══════════════════════════════════════════
-    {"category": "network", "text": "OSI моделінің қай деңгейі байланыс сеанстарын басқару және синхрондауға жауап береді?", "options": ["Желiлік", "Тасымалдау", "Сеанстық", "Ұсыныс", "Қолданбалық"], "correct_index": 2},
-    {"category": "network", "text": "TCP мен UDP арасындағы негізгі айырмашылық неде (тасымалдау деңгейінде)?", "options": ["TCP — байланыссыз, UDP — байланысты", "TCP сенімді жеткізуді қамтамасыз етеді, UDP — жоқ", "UDP 3-way handshake қолданады", "TCP тек IPv6-пен жұмыс істейді", "UDP-ның тақырыбы үлкенірек"], "correct_index": 1},
-    {"category": "network", "text": "DHCPv6 серверсіз IPv6 мекенжайын автоматты түрде конфигурациялау үшін қандай хаттама қолданылады?", "options": ["SLAAC", "DHCPv6", "NDP", "ICMPv6", "OSPFv3"], "correct_index": 0},
-    {"category": "network", "text": "BGP хаттамасында қандай маршрутизация түрі қолданылады?", "options": ["Distance Vector", "Link State", "Path Vector", "Hybrid", "Flooding"], "correct_index": 2},
-    {"category": "network", "text": "TCP тақырыбындағы SYN жалауы нені білдіреді?", "options": ["Байланысты аяқтау сұрауы", "Деректердің алынғанын растау", "Байланысты бастау", "Байланысты қалпына келтіру", "Шұғыл деректер"], "correct_index": 2},
-    {"category": "network", "text": "TCP-де қабылдаушы буферінің толып кетуін болдырмайтын механизм қандай?", "options": ["Sliding Window", "Congestion Window", "Slow Start", "Fast Retransmit", "Three Duplicate ACKs"], "correct_index": 0},
-    {"category": "network", "text": "Коммутаторларда циклдерді болдырмау үшін IEEE 802.1 отбасының қандай хаттамасы қолданылады?", "options": ["802.1Q", "802.1X", "STP (802.1D)", "LLDP", "LACP (802.3ad)"], "correct_index": 2},
-    {"category": "network", "text": "IPv6-да фрагментацияға қай кеңейтілген тақырып жауап береді?", "options": ["Hop-by-Hop Options", "Routing Header", "Fragment Header", "Destination Options", "Authentication Header"], "correct_index": 2},
-    {"category": "network", "text": "SDN (Software-Defined Networking) артықшылықтарының қайсысы дұрыс?", "options": ["Жабдықтағы тұрақты маршрутизация", "Контроллер арқылы ағынды орталықтан басқару", "OpenFlow-тың болмауы", "Коммутаторларға жүктеменің артуы", "Қауіпсіздіктің толық болмауы"], "correct_index": 1},
-    {"category": "network", "text": "Желiлік деңгейде құпиялылық пен тұтастықты қамтамасыз ететін хаттама қандай?", "options": ["TLS", "SSL", "IPsec", "SSH", "HTTPS"], "correct_index": 2},
-    {"category": "network", "text": "Атакушы көптеген SYN-пакеттерді жіберіп, handshake-ті аяқтамайтын шабуыл қалай аталады?", "options": ["SYN Flood", "Smurf Attack", "Ping of Death", "ARP Poisoning", "DNS Amplification"], "correct_index": 0},
-    {"category": "network", "text": "Көптеген TCP реализацияларында әдепкі терезе өлшемі қанша байт?", "options": ["4096", "65535", "1460", "536", "16384"], "correct_index": 1},
-    {"category": "network", "text": "IPv6-да көршілерді анықтау үшін қандай хаттама қолданылады?", "options": ["ARP", "ICMPv4", "NDP (Neighbor Discovery Protocol)", "IGMP", "DHCPv4"], "correct_index": 2},
-    {"category": "network", "text": "Қай хаттамада Dijkstra алгоритмі ең қысқа жолдарды есептеу үшін қолданылады?", "options": ["RIP", "OSPF", "BGP", "EIGRP", "IS-IS"], "correct_index": 1},
-    {"category": "network", "text": "IP-пакет тақырыбындағы TTL нені білдіреді?", "options": ["Пакеттің өмір сүру уақыты секундпен", "Қалған хоптар саны", "Пайдалы жүктеме өлшемі", "Пакет приоритеті", "Фрагментация жалауы"], "correct_index": 1},
-    {"category": "network", "text": "L2TP + IPsec хаттамаларын қолданатын VPN түрі қандай?", "options": ["Site-to-Site", "Remote Access", "Layer 2", "Layer 3", "SSL VPN"], "correct_index": 2},
-    {"category": "network", "text": "Бір физикалық канал арқылы бірнеше VLAN-ды өткізуге мүмкіндік беретін технология қалай аталады?", "options": ["Trunking (802.1Q)", "Port Channel", "Spanning Tree", "QoS", "NAT"], "correct_index": 0},
-    {"category": "network", "text": "QUIC хаттамасы (HTTP/3) әдепкі бойынша қандай портты қолданады?", "options": ["80", "443", "8080", "53", "21"], "correct_index": 1},
-    {"category": "network", "text": "Төмендегілердің қайсысы канальдық деңгей хаттамаларына жатпайды?", "options": ["PPP", "Ethernet", "ARP", "OSPF", "Wi-Fi (802.11)"], "correct_index": 3},
-    {"category": "network", "text": "TCP-де желілік қайта жүктемеге қарсы қандай механизм қолданылады?", "options": ["Тек Sliding Window", "Congestion Avoidance + Slow Start", "Тек Exponential Backoff", "Selective Repeat", "Go-Back-N"], "correct_index": 1},
-    {"category": "network", "text": "IPv6-да one-to-many коммуникация үшін қандай адресация түрі қолданылады?", "options": ["Unicast", "Multicast", "Anycast", "Broadcast", "Link-local"], "correct_index": 1},
-    {"category": "network", "text": "Қазіргі кәсіпорын желілерінде RIP-ті алмастыратын хаттама қалай аталады?", "options": ["OSPF", "BGP", "IS-IS", "EIGRP", "RIPng"], "correct_index": 0},
-    {"category": "network", "text": "Ethernet контекстінде MTU деген не?", "options": ["Тақырыпсыз кадрдың максималды өлшемі", "Фрагментациясыз IP-пакеттің максималды өлшемі", "TCP тақырыбының өлшемі", "Қабылдау терезесінің өлшемі", "Кадрдың пайдалы жүктемесінің максималды өлшемі"], "correct_index": 1},
-    {"category": "network", "text": "WPA2-Enterprise сымсыз желілерінде аутентификация үшін қандай хаттама қолданылады?", "options": ["PSK", "EAP", "TKIP", "AES", "WEP"], "correct_index": 1},
-    {"category": "network", "text": "IPv6-тың IPv4-ке қарағанда мобильділік тұрғысынан артықшылығы неде?", "options": ["Тақырыптың кішірек өлшемі", "Mobile IPv6-тың кіріктірілген қолдауы", "NAT-тың болмауы", "Автоматты конфигурация", "Жоғарыдағылардың барлығы"], "correct_index": 4},
+    {
+        "category": "network",
+        "text_kz": "OSI моделінің қай деңгейі байланыс сеанстарын басқару және синхрондауға жауап береді?",
+        "text_ru": "Какой уровень модели OSI отвечает за управление сеансами связи и синхронизацию?",
+        "options_kz": ["Желiлік", "Тасымалдау", "Сеанстық", "Ұсыныс", "Қолданбалық"],
+        "options_ru": ["Сетевой", "Транспортный", "Сеансовый", "Представления", "Прикладной"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "TCP мен UDP арасындағы негізгі айырмашылық неде (тасымалдау деңгейінде)?",
+        "text_ru": "В чём основное отличие TCP от UDP (на транспортном уровне)?",
+        "options_kz": ["TCP — байланыссыз, UDP — байланысты", "TCP сенімді жеткізуді қамтамасыз етеді, UDP — жоқ", "UDP 3-way handshake қолданады", "TCP тек IPv6-пен жұмыс істейді", "UDP-ның тақырыбы үлкенірек"],
+        "options_ru": ["TCP — без соединения, UDP — с соединением", "TCP обеспечивает надёжную доставку, UDP — нет", "UDP использует 3-way handshake", "TCP работает только с IPv6", "Заголовок UDP больше"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "DHCPv6 серверсіз IPv6 мекенжайын автоматты түрде конфигурациялау үшін қандай хаттама қолданылады?",
+        "text_ru": "Какой протокол используется для автоматической настройки IPv6-адреса без DHCPv6-сервера?",
+        "options_kz": ["SLAAC", "DHCPv6", "NDP", "ICMPv6", "OSPFv3"],
+        "options_ru": ["SLAAC", "DHCPv6", "NDP", "ICMPv6", "OSPFv3"],
+        "correct_index": 0,
+    },
+    {
+        "category": "network",
+        "text_kz": "BGP хаттамасында қандай маршрутизация түрі қолданылады?",
+        "text_ru": "Какой тип маршрутизации используется в протоколе BGP?",
+        "options_kz": ["Distance Vector", "Link State", "Path Vector", "Hybrid", "Flooding"],
+        "options_ru": ["Вектор расстояния", "Состояние канала", "Вектор пути", "Гибридный", "Затопление"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "TCP тақырыбындағы SYN жалауы нені білдіреді?",
+        "text_ru": "Что означает флаг SYN в заголовке TCP?",
+        "options_kz": ["Байланысты аяқтау сұрауы", "Деректердің алынғанын растау", "Байланысты бастау", "Байланысты қалпына келтіру", "Шұғыл деректер"],
+        "options_ru": ["Запрос завершения соединения", "Подтверждение получения данных", "Инициация соединения", "Сброс соединения", "Срочные данные"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "TCP-де қабылдаушы буферінің толып кетуін болдырмайтын механизм қандай?",
+        "text_ru": "Какой механизм TCP предотвращает переполнение буфера получателя?",
+        "options_kz": ["Sliding Window", "Congestion Window", "Slow Start", "Fast Retransmit", "Three Duplicate ACKs"],
+        "options_ru": ["Скользящее окно", "Окно перегрузки", "Медленный старт", "Быстрая повторная передача", "Три дублирующих ACK"],
+        "correct_index": 0,
+    },
+    {
+        "category": "network",
+        "text_kz": "Коммутаторларда циклдерді болдырмау үшін IEEE 802.1 отбасының қандай хаттамасы қолданылады?",
+        "text_ru": "Какой протокол семейства IEEE 802.1 используется для предотвращения петель в коммутаторах?",
+        "options_kz": ["802.1Q", "802.1X", "STP (802.1D)", "LLDP", "LACP (802.3ad)"],
+        "options_ru": ["802.1Q", "802.1X", "STP (802.1D)", "LLDP", "LACP (802.3ad)"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "IPv6-да фрагментацияға қай кеңейтілген тақырып жауап береді?",
+        "text_ru": "Какой расширенный заголовок IPv6 отвечает за фрагментацию?",
+        "options_kz": ["Hop-by-Hop Options", "Routing Header", "Fragment Header", "Destination Options", "Authentication Header"],
+        "options_ru": ["Hop-by-Hop параметры", "Заголовок маршрутизации", "Заголовок фрагментации", "Параметры назначения", "Заголовок аутентификации"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "SDN (Software-Defined Networking) артықшылықтарының қайсысы дұрыс?",
+        "text_ru": "Какое из преимуществ SDN (программно-определяемых сетей) верно?",
+        "options_kz": ["Жабдықтағы тұрақты маршрутизация", "Контроллер арқылы ағынды орталықтан басқару", "OpenFlow-тың болмауы", "Коммутаторларға жүктеменің артуы", "Қауіпсіздіктің толық болмауы"],
+        "options_ru": ["Статическая маршрутизация на оборудовании", "Централизованное управление потоками через контроллер", "Отсутствие OpenFlow", "Увеличение нагрузки на коммутаторы", "Полное отсутствие безопасности"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "Желiлік деңгейде құпиялылық пен тұтастықты қамтамасыз ететін хаттама қандай?",
+        "text_ru": "Какой протокол обеспечивает конфиденциальность и целостность на сетевом уровне?",
+        "options_kz": ["TLS", "SSL", "IPsec", "SSH", "HTTPS"],
+        "options_ru": ["TLS", "SSL", "IPsec", "SSH", "HTTPS"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "Атакушы көптеген SYN-пакеттерді жіберіп, handshake-ті аяқтамайтын шабуыл қалай аталады?",
+        "text_ru": "Как называется атака, при которой злоумышленник отправляет множество SYN-пакетов, не завершая handshake?",
+        "options_kz": ["SYN Flood", "Smurf Attack", "Ping of Death", "ARP Poisoning", "DNS Amplification"],
+        "options_ru": ["SYN Flood", "Smurf-атака", "Ping of Death", "ARP-отравление", "DNS-усиление"],
+        "correct_index": 0,
+    },
+    {
+        "category": "network",
+        "text_kz": "Көптеген TCP реализацияларында әдепкі терезе өлшемі қанша байт?",
+        "text_ru": "Какой размер окна по умолчанию в большинстве реализаций TCP (в байтах)?",
+        "options_kz": ["4096", "65535", "1460", "536", "16384"],
+        "options_ru": ["4096", "65535", "1460", "536", "16384"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "IPv6-да көршілерді анықтау үшін қандай хаттама қолданылады?",
+        "text_ru": "Какой протокол используется в IPv6 для обнаружения соседних узлов?",
+        "options_kz": ["ARP", "ICMPv4", "NDP (Neighbor Discovery Protocol)", "IGMP", "DHCPv4"],
+        "options_ru": ["ARP", "ICMPv4", "NDP (протокол обнаружения соседей)", "IGMP", "DHCPv4"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "Қай хаттамада Dijkstra алгоритмі ең қысқа жолдарды есептеу үшін қолданылады?",
+        "text_ru": "В каком протоколе для вычисления кратчайших путей применяется алгоритм Дейкстры?",
+        "options_kz": ["RIP", "OSPF", "BGP", "EIGRP", "IS-IS"],
+        "options_ru": ["RIP", "OSPF", "BGP", "EIGRP", "IS-IS"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "IP-пакет тақырыбындағы TTL нені білдіреді?",
+        "text_ru": "Что означает поле TTL в заголовке IP-пакета?",
+        "options_kz": ["Пакеттің өмір сүру уақыты секундпен", "Қалған хоптар саны", "Пайдалы жүктеме өлшемі", "Пакет приоритеті", "Фрагментация жалауы"],
+        "options_ru": ["Время жизни пакета в секундах", "Количество оставшихся хопов", "Размер полезной нагрузки", "Приоритет пакета", "Флаг фрагментации"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "L2TP + IPsec хаттамаларын қолданатын VPN түрі қандай?",
+        "text_ru": "Какой тип VPN использует протоколы L2TP + IPsec?",
+        "options_kz": ["Site-to-Site", "Remote Access", "Layer 2", "Layer 3", "SSL VPN"],
+        "options_ru": ["Site-to-Site", "Удалённый доступ", "Уровень 2", "Уровень 3", "SSL VPN"],
+        "correct_index": 2,
+    },
+    {
+        "category": "network",
+        "text_kz": "Бір физикалық канал арқылы бірнеше VLAN-ды өткізуге мүмкіндік беретін технология қалай аталады?",
+        "text_ru": "Как называется технология, позволяющая передавать несколько VLAN через один физический канал?",
+        "options_kz": ["Trunking (802.1Q)", "Port Channel", "Spanning Tree", "QoS", "NAT"],
+        "options_ru": ["Транкинг (802.1Q)", "Агрегация портов", "Spanning Tree", "QoS", "NAT"],
+        "correct_index": 0,
+    },
+    {
+        "category": "network",
+        "text_kz": "QUIC хаттамасы (HTTP/3) әдепкі бойынша қандай портты қолданады?",
+        "text_ru": "Какой порт по умолчанию использует протокол QUIC (HTTP/3)?",
+        "options_kz": ["80", "443", "8080", "53", "21"],
+        "options_ru": ["80", "443", "8080", "53", "21"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "Төмендегілердің қайсысы канальдық деңгей хаттамаларына жатпайды?",
+        "text_ru": "Какой из перечисленных протоколов НЕ относится к канальному уровню?",
+        "options_kz": ["PPP", "Ethernet", "ARP", "OSPF", "Wi-Fi (802.11)"],
+        "options_ru": ["PPP", "Ethernet", "ARP", "OSPF", "Wi-Fi (802.11)"],
+        "correct_index": 3,
+    },
+    {
+        "category": "network",
+        "text_kz": "TCP-де желілік қайта жүктемеге қарсы қандай механизм қолданылады?",
+        "text_ru": "Какой механизм TCP используется против перегрузки сети?",
+        "options_kz": ["Тек Sliding Window", "Congestion Avoidance + Slow Start", "Тек Exponential Backoff", "Selective Repeat", "Go-Back-N"],
+        "options_ru": ["Только скользящее окно", "Предотвращение перегрузки + медленный старт", "Только экспоненциальная выдержка", "Избирательный повтор", "Возврат на N"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "IPv6-да one-to-many коммуникация үшін қандай адресация түрі қолданылады?",
+        "text_ru": "Какой тип адресации используется в IPv6 для связи «один ко многим»?",
+        "options_kz": ["Unicast", "Multicast", "Anycast", "Broadcast", "Link-local"],
+        "options_ru": ["Одноадресная", "Многоадресная", "Anycast", "Широковещательная", "Канальная локальная"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "Қазіргі кәсіпорын желілерінде RIP-ті алмастыратын хаттама қалай аталады?",
+        "text_ru": "Какой протокол заменяет RIP в современных корпоративных сетях?",
+        "options_kz": ["OSPF", "BGP", "IS-IS", "EIGRP", "RIPng"],
+        "options_ru": ["OSPF", "BGP", "IS-IS", "EIGRP", "RIPng"],
+        "correct_index": 0,
+    },
+    {
+        "category": "network",
+        "text_kz": "Ethernet контекстінде MTU деген не?",
+        "text_ru": "Что такое MTU в контексте Ethernet?",
+        "options_kz": ["Тақырыпсыз кадрдың максималды өлшемі", "Фрагментациясыз IP-пакеттің максималды өлшемі", "TCP тақырыбының өлшемі", "Қабылдау терезесінің өлшемі", "Кадрдың пайдалы жүктемесінің максималды өлшемі"],
+        "options_ru": ["Максимальный размер кадра без заголовка", "Максимальный размер IP-пакета без фрагментации", "Размер заголовка TCP", "Размер окна приёма", "Максимальный размер полезной нагрузки кадра"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "WPA2-Enterprise сымсыз желілерінде аутентификация үшін қандай хаттама қолданылады?",
+        "text_ru": "Какой протокол используется для аутентификации в беспроводных сетях WPA2-Enterprise?",
+        "options_kz": ["PSK", "EAP", "TKIP", "AES", "WEP"],
+        "options_ru": ["PSK", "EAP", "TKIP", "AES", "WEP"],
+        "correct_index": 1,
+    },
+    {
+        "category": "network",
+        "text_kz": "IPv6-тың IPv4-ке қарағанда мобильділік тұрғысынан артықшылығы неде?",
+        "text_ru": "В чём преимущество IPv6 перед IPv4 с точки зрения мобильности?",
+        "options_kz": ["Тақырыптың кішірек өлшемі", "Mobile IPv6-тың кіріктірілген қолдауы", "NAT-тың болмауы", "Автоматты конфигурация", "Жоғарыдағылардың барлығы"],
+        "options_ru": ["Меньший размер заголовка", "Встроенная поддержка Mobile IPv6", "Отсутствие NAT", "Автоматическая конфигурация", "Всё вышеперечисленное"],
+        "correct_index": 4,
+    },
 
     # ══════════════════════════════════════════
-    #  ДЕРЕКҚОРЛАР — category="database"  (26–50)
+    #  ДЕРЕКҚОРЛАР — category="database"
     # ══════════════════════════════════════════
-    {"category": "database", "text": "Қай нормальдық форма транзитивті функционалдық тәуелділіктерді жоюды талап етеді?", "options": ["1НФ", "2НФ", "3НФ", "BCNF", "4НФ"], "correct_index": 2},
-    {"category": "database", "text": "ACID қасиеттерінің қайсысы транзакциялардың бір-бірінің аралық нәтижелерін көрмеуін қамтамасыз етеді?", "options": ["Барлық операциялар атомарлы орындалады", "Транзакциялар басқа транзакциялардың аралық нәтижелерін көрмейді", "Транзакциядан кейін база сәйкестікте қалады", "Өзгерістер коммиттен кейін сақталады", "Жоғары өнімділік"], "correct_index": 1},
-    {"category": "database", "text": "Қай JOIN түрі екі кестедегі барлық жолдарды қайтарады, сәйкес келмейтін жерлерде NULL қояды?", "options": ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN", "FULL OUTER JOIN", "CROSS JOIN"], "correct_index": 3},
-    {"category": "database", "text": "Көптеген СУБД-де B+-tree индексі не істейді?", "options": ["INSERT-ті әрқашан жылдамдатады", "Аралық (диапазондық) сұраулар мен сұрыптауды қолдайды", "Тек бірегей мәндермен жұмыс істейді", "Дерекқор көлемін азайтады", "Бастапқы кілтті алмастырады"], "correct_index": 1},
-    {"category": "database", "text": "Қай SQL операторы ішкі сұраудың бар-жоғын тексереді?", "options": ["IN", "EXISTS", "ANY", "ALL", "SOME"], "correct_index": 1},
-    {"category": "database", "text": "ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...) функциясы нені қайтарады?", "options": ["Партициядағы жолдар санын", "Партиция ішіндегі жолдың бірегей нөмірін", "Мәндердің қосындысын", "Дубльсіз рангті", "Орташа мәнді"], "correct_index": 1},
-    {"category": "database", "text": "Қай транзакция оқшаулау деңгейі қайталанбайтын оқуды рұқсат етеді?", "options": ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE", "SNAPSHOT"], "correct_index": 1},
-    {"category": "database", "text": "Төмендегілердің қайсысы денормализацияның артықшылығы емес?", "options": ["Оқуды жылдамдату", "JOIN санының азаюы", "Сұраулардың жеңілдеуі", "Жаңарту аномалияларын жою", "Сақталатын деректер көлемінің азаюы"], "correct_index": 3},
-    {"category": "database", "text": "Бағандағы дубльдерді тыйым салатын шектеу түрі қандай?", "options": ["PRIMARY KEY", "FOREIGN KEY", "UNIQUE", "CHECK", "NOT NULL"], "correct_index": 2},
-    {"category": "database", "text": "Құрама бастапқы кілт суррогаттық кілттен артық болатын жағдай қандай?", "options": ["INSERT жиі болғанда", "Табиғи кілт әрқашан бірегей және өзгермейтін болғанда", "JOIN саны көп болғанда", "Орын үнемдеу үшін", "Ешқашан"], "correct_index": 1},
-    {"category": "database", "text": "WITH командасы (рекурсивті CTE) не істейді?", "options": ["Уақытша кесте жасайды", "Рекурсивті сұрауларға (иерархияларға) мүмкіндік береді", "Индекс жасайды", "Ішкі сұраумен UPDATE орындайды", "Терезе функциясын анықтайды"], "correct_index": 1},
-    {"category": "database", "text": "PostgreSQL/MySQL-де индекстелетін JSON құжаттарын сақтауға қай деректер түрі қолайлы?", "options": ["TEXT", "VARCHAR", "JSON/JSONB", "BLOB", "XML"], "correct_index": 2},
-    {"category": "database", "text": "RANK() функциясы DENSE_RANK()-тен несімен ерекшеленеді?", "options": ["Дубльдер болғанда нөмірлерді өткізіп жібереді", "Дубльдер болғанда нөмірлерді өткізбейді", "Орташа рангті қайтарады", "Дубльдер санын қайтарады", "Тек сандармен жұмыс істейді"], "correct_index": 0},
-    {"category": "database", "text": "Екі SELECT нәтижесін дубльсіз біріктіру үшін қай оператор қолданылады?", "options": ["UNION", "UNION ALL", "INTERSECT", "EXCEPT", "CROSS JOIN"], "correct_index": 0},
-    {"category": "database", "text": "FOREIGN KEY-ді бұзатын жазбаны қосуға әрекет жасағанда не болады?", "options": ["Жазба NULL-мен қосылады", "Шектеу бұзылғаны туралы қате шығады", "Жазба қосылады, бірақ FK NULL болады", "Транзакция автоматты түрде қайтарылады", "ON DELETE CASCADE-қа байланысты"], "correct_index": 1},
-    {"category": "database", "text": "Жиі қолданылатын диапазондық шарттарға (> , < , BETWEEN) қай индекс қолайлы?", "options": ["Hash", "B-tree", "Bitmap", "GiST", "GIN"], "correct_index": 1},
-    {"category": "database", "text": "AFTER триггерінің мысалы қайсы?", "options": ["Қосудың алдында тексеру", "Жаңартудан кейін логтау", "Қосудың алдында мәнді өзгерту", "Қатеде операцияны тоқтату", "Автоинкремент"], "correct_index": 1},
-    {"category": "database", "text": "Бір фактты жаңарту бірнеше жолды өзгертуді талап ететін аномалия қалай аталады?", "options": ["Insertion anomaly", "Deletion anomaly", "Update anomaly", "Selection anomaly", "Join anomaly"], "correct_index": 2},
-    {"category": "database", "text": "Қай ішкі сұрау бірнеше жол қайтара алады?", "options": ["Скалярлық", "Корреляцияланған", "WHERE шартта IN-пен", "SELECT-те өрнек ретінде", "Мүмкін емес"], "correct_index": 2},
-    {"category": "database", "text": "Көптеген СУБД-де EXPLAIN командасы не істейді?", "options": ["Сұрауды орындайды", "Сұраудың орындалу жоспарын көрсетеді", "Индекс жасайды", "Кестені оңтайландырады", "Дубльдерді жояды"], "correct_index": 1},
-    {"category": "database", "text": "Қай агрегаттық функция NULL мәндерді елемейді?", "options": ["COUNT(*)", "COUNT(баған)", "SUM", "AVG", "COUNT(*)-дан басқасының барлығы"], "correct_index": 4},
-    {"category": "database", "text": "TRUNCATE мен WHERE-сыз DELETE арасындағы айырмашылық неде?", "options": ["TRUNCATE баяу", "DELETE-ті қайтаруға болады, TRUNCATE-ті көп жағдайда жоқ", "TRUNCATE автоинкрементті қалпына келтірмейді", "DELETE индекстермен жылдамырақ жұмыс істейді", "Айырмашылық жоқ"], "correct_index": 1},
-    {"category": "database", "text": "Аралық кесте арқылы қандай байланыс түрі жүзеге асады?", "options": ["1:1", "1:N", "N:1", "M:N", "1:0..1"], "correct_index": 3},
-    {"category": "database", "text": "Дерекқорлардағы deadlock деген не?", "options": ["Транзакция өзі күткенде", "Екі немесе одан көп транзакцияның циклдік ресурстарды күтуі", "Индекс зақымдалғанда", "FOREIGN KEY бұзылғанда", "Қосылулар шегі асып кеткенде"], "correct_index": 1},
-    {"category": "database", "text": "PostgreSQL-де ішінара (partial) индекстерді қалай жасауға болады?", "options": ["CREATE INDEX-те WHERE қолдану", "CREATE INDEX-те INCLUDE қолдану", "PARTITION BY", "USING GIN", "CONCURRENTLY"], "correct_index": 0},
+    {
+        "category": "database",
+        "text_kz": "Қай нормальдық форма транзитивті функционалдық тәуелділіктерді жоюды талап етеді?",
+        "text_ru": "Какая нормальная форма требует устранения транзитивных функциональных зависимостей?",
+        "options_kz": ["1НФ", "2НФ", "3НФ", "BCNF", "4НФ"],
+        "options_ru": ["1НФ", "2НФ", "3НФ", "BCNF", "4НФ"],
+        "correct_index": 2,
+    },
+    {
+        "category": "database",
+        "text_kz": "ACID қасиеттерінің қайсысы транзакциялардың бір-бірінің аралық нәтижелерін көрмеуін қамтамасыз етеді?",
+        "text_ru": "Какое свойство ACID гарантирует, что транзакции не видят промежуточных результатов друг друга?",
+        "options_kz": ["Барлық операциялар атомарлы орындалады", "Транзакциялар басқа транзакциялардың аралық нәтижелерін көрмейді", "Транзакциядан кейін база сәйкестікте қалады", "Өзгерістер коммиттен кейін сақталады", "Жоғары өнімділік"],
+        "options_ru": ["Все операции выполняются атомарно", "Транзакции не видят промежуточных результатов других транзакций", "После транзакции база остаётся согласованной", "Изменения сохраняются после коммита", "Высокая производительность"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Қай JOIN түрі екі кестедегі барлық жолдарды қайтарады, сәйкес келмейтін жерлерде NULL қояды?",
+        "text_ru": "Какой тип JOIN возвращает все строки из обеих таблиц, подставляя NULL при отсутствии совпадений?",
+        "options_kz": ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN", "FULL OUTER JOIN", "CROSS JOIN"],
+        "options_ru": ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN", "FULL OUTER JOIN", "CROSS JOIN"],
+        "correct_index": 3,
+    },
+    {
+        "category": "database",
+        "text_kz": "Көптеген СУБД-де B+-tree индексі не істейді?",
+        "text_ru": "Что делает B+-tree индекс в большинстве СУБД?",
+        "options_kz": ["INSERT-ті әрқашан жылдамдатады", "Аралық (диапазондық) сұраулар мен сұрыптауды қолдайды", "Тек бірегей мәндермен жұмыс істейді", "Дерекқор көлемін азайтады", "Бастапқы кілтті алмастырады"],
+        "options_ru": ["Всегда ускоряет INSERT", "Поддерживает диапазонные запросы и сортировку", "Работает только с уникальными значениями", "Уменьшает размер базы данных", "Заменяет первичный ключ"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Қай SQL операторы ішкі сұраудың бар-жоғын тексереді?",
+        "text_ru": "Какой оператор SQL проверяет наличие результатов во вложенном запросе?",
+        "options_kz": ["IN", "EXISTS", "ANY", "ALL", "SOME"],
+        "options_ru": ["IN", "EXISTS", "ANY", "ALL", "SOME"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...) функциясы нені қайтарады?",
+        "text_ru": "Что возвращает функция ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...)?",
+        "options_kz": ["Партициядағы жолдар санын", "Партиция ішіндегі жолдың бірегей нөмірін", "Мәндердің қосындысын", "Дубльсіз рангті", "Орташа мәнді"],
+        "options_ru": ["Количество строк в разделе", "Уникальный номер строки внутри раздела", "Сумму значений", "Ранг без дублей", "Среднее значение"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Қай транзакция оқшаулау деңгейі қайталанбайтын оқуды рұқсат етеді?",
+        "text_ru": "Какой уровень изоляции транзакций допускает неповторяющееся чтение?",
+        "options_kz": ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE", "SNAPSHOT"],
+        "options_ru": ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE", "SNAPSHOT"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Төмендегілердің қайсысы денормализацияның артықшылығы емес?",
+        "text_ru": "Что из перечисленного НЕ является преимуществом денормализации?",
+        "options_kz": ["Оқуды жылдамдату", "JOIN санының азаюы", "Сұраулардың жеңілдеуі", "Жаңарту аномалияларын жою", "Сақталатын деректер көлемінің азаюы"],
+        "options_ru": ["Ускорение чтения", "Уменьшение числа JOIN", "Упрощение запросов", "Устранение аномалий обновления", "Уменьшение объёма хранимых данных"],
+        "correct_index": 3,
+    },
+    {
+        "category": "database",
+        "text_kz": "Бағандағы дубльдерді тыйым салатын шектеу түрі қандай?",
+        "text_ru": "Какое ограничение запрещает дублирование значений в столбце?",
+        "options_kz": ["PRIMARY KEY", "FOREIGN KEY", "UNIQUE", "CHECK", "NOT NULL"],
+        "options_ru": ["PRIMARY KEY", "FOREIGN KEY", "UNIQUE", "CHECK", "NOT NULL"],
+        "correct_index": 2,
+    },
+    {
+        "category": "database",
+        "text_kz": "Құрама бастапқы кілт суррогаттық кілттен артық болатын жағдай қандай?",
+        "text_ru": "В каком случае составной первичный ключ предпочтительнее суррогатного?",
+        "options_kz": ["INSERT жиі болғанда", "Табиғи кілт әрқашан бірегей және өзгермейтін болғанда", "JOIN саны көп болғанда", "Орын үнемдеу үшін", "Ешқашан"],
+        "options_ru": ["При частых INSERT", "Когда естественный ключ всегда уникален и неизменен", "При большом числе JOIN", "Для экономии места", "Никогда"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "WITH командасы (рекурсивті CTE) не істейді?",
+        "text_ru": "Что делает команда WITH (рекурсивный CTE)?",
+        "options_kz": ["Уақытша кесте жасайды", "Рекурсивті сұрауларға (иерархияларға) мүмкіндік береді", "Индекс жасайды", "Ішкі сұраумен UPDATE орындайды", "Терезе функциясын анықтайды"],
+        "options_ru": ["Создаёт временную таблицу", "Позволяет выполнять рекурсивные запросы (иерархии)", "Создаёт индекс", "Выполняет UPDATE с подзапросом", "Определяет оконную функцию"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "PostgreSQL/MySQL-де индекстелетін JSON құжаттарын сақтауға қай деректер түрі қолайлы?",
+        "text_ru": "Какой тип данных подходит для хранения индексируемых JSON-документов в PostgreSQL/MySQL?",
+        "options_kz": ["TEXT", "VARCHAR", "JSON/JSONB", "BLOB", "XML"],
+        "options_ru": ["TEXT", "VARCHAR", "JSON/JSONB", "BLOB", "XML"],
+        "correct_index": 2,
+    },
+    {
+        "category": "database",
+        "text_kz": "RANK() функциясы DENSE_RANK()-тен несімен ерекшеленеді?",
+        "text_ru": "Чем функция RANK() отличается от DENSE_RANK()?",
+        "options_kz": ["Дубльдер болғанда нөмірлерді өткізіп жібереді", "Дубльдер болғанда нөмірлерді өткізбейді", "Орташа рангті қайтарады", "Дубльдер санын қайтарады", "Тек сандармен жұмыс істейді"],
+        "options_ru": ["Пропускает номера при дублях", "Не пропускает номера при дублях", "Возвращает средний ранг", "Возвращает количество дублей", "Работает только с числами"],
+        "correct_index": 0,
+    },
+    {
+        "category": "database",
+        "text_kz": "Екі SELECT нәтижесін дубльсіз біріктіру үшін қай оператор қолданылады?",
+        "text_ru": "Какой оператор объединяет результаты двух SELECT без дублей?",
+        "options_kz": ["UNION", "UNION ALL", "INTERSECT", "EXCEPT", "CROSS JOIN"],
+        "options_ru": ["UNION", "UNION ALL", "INTERSECT", "EXCEPT", "CROSS JOIN"],
+        "correct_index": 0,
+    },
+    {
+        "category": "database",
+        "text_kz": "FOREIGN KEY-ді бұзатын жазбаны қосуға әрекет жасағанда не болады?",
+        "text_ru": "Что произойдёт при попытке добавить запись, нарушающую FOREIGN KEY?",
+        "options_kz": ["Жазба NULL-мен қосылады", "Шектеу бұзылғаны туралы қате шығады", "Жазба қосылады, бірақ FK NULL болады", "Транзакция автоматты түрде қайтарылады", "ON DELETE CASCADE-қа байланысты"],
+        "options_ru": ["Запись добавится с NULL", "Выдаётся ошибка о нарушении ограничения", "Запись добавится, но FK будет NULL", "Транзакция откатится автоматически", "Зависит от ON DELETE CASCADE"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Жиі қолданылатын диапазондық шарттарға (> , < , BETWEEN) қай индекс қолайлы?",
+        "text_ru": "Какой индекс подходит для часто используемых диапазонных условий (>, <, BETWEEN)?",
+        "options_kz": ["Hash", "B-tree", "Bitmap", "GiST", "GIN"],
+        "options_ru": ["Hash", "B-tree", "Bitmap", "GiST", "GIN"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "AFTER триггерінің мысалы қайсы?",
+        "text_ru": "Что является примером AFTER-триггера?",
+        "options_kz": ["Қосудың алдында тексеру", "Жаңартудан кейін логтау", "Қосудың алдында мәнді өзгерту", "Қатеде операцияны тоқтату", "Автоинкремент"],
+        "options_ru": ["Проверка перед вставкой", "Логирование после обновления", "Изменение значения перед вставкой", "Остановка операции при ошибке", "Автоинкремент"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Бір фактты жаңарту бірнеше жолды өзгертуді талап ететін аномалия қалай аталады?",
+        "text_ru": "Как называется аномалия, при которой обновление одного факта требует изменения нескольких строк?",
+        "options_kz": ["Insertion anomaly", "Deletion anomaly", "Update anomaly", "Selection anomaly", "Join anomaly"],
+        "options_ru": ["Аномалия вставки", "Аномалия удаления", "Аномалия обновления", "Аномалия выборки", "Аномалия соединения"],
+        "correct_index": 2,
+    },
+    {
+        "category": "database",
+        "text_kz": "Қай ішкі сұрау бірнеше жол қайтара алады?",
+        "text_ru": "Какой подзапрос может возвращать несколько строк?",
+        "options_kz": ["Скалярлық", "Корреляцияланған", "WHERE шартта IN-пен", "SELECT-те өрнек ретінде", "Мүмкін емес"],
+        "options_ru": ["Скалярный", "Коррелированный", "С оператором IN в условии WHERE", "В качестве выражения в SELECT", "Невозможно"],
+        "correct_index": 2,
+    },
+    {
+        "category": "database",
+        "text_kz": "Көптеген СУБД-де EXPLAIN командасы не істейді?",
+        "text_ru": "Что делает команда EXPLAIN в большинстве СУБД?",
+        "options_kz": ["Сұрауды орындайды", "Сұраудың орындалу жоспарын көрсетеді", "Индекс жасайды", "Кестені оңтайландырады", "Дубльдерді жояды"],
+        "options_ru": ["Выполняет запрос", "Показывает план выполнения запроса", "Создаёт индекс", "Оптимизирует таблицу", "Удаляет дубли"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Қай агрегаттық функция NULL мәндерді елемейді?",
+        "text_ru": "Какая агрегатная функция игнорирует NULL-значения?",
+        "options_kz": ["COUNT(*)", "COUNT(баған)", "SUM", "AVG", "COUNT(*)-дан басқасының барлығы"],
+        "options_ru": ["COUNT(*)", "COUNT(столбец)", "SUM", "AVG", "Все кроме COUNT(*)"],
+        "correct_index": 4,
+    },
+    {
+        "category": "database",
+        "text_kz": "TRUNCATE мен WHERE-сыз DELETE арасындағы айырмашылық неде?",
+        "text_ru": "В чём разница между TRUNCATE и DELETE без WHERE?",
+        "options_kz": ["TRUNCATE баяу", "DELETE-ті қайтаруға болады, TRUNCATE-ті көп жағдайда жоқ", "TRUNCATE автоинкрементті қалпына келтірмейді", "DELETE индекстермен жылдамырақ жұмыс істейді", "Айырмашылық жоқ"],
+        "options_ru": ["TRUNCATE медленнее", "DELETE можно откатить, TRUNCATE — в большинстве случаев нет", "TRUNCATE не сбрасывает автоинкремент", "DELETE быстрее работает с индексами", "Нет разницы"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "Аралық кесте арқылы қандай байланыс түрі жүзеге асады?",
+        "text_ru": "Какой тип связи реализуется через промежуточную таблицу?",
+        "options_kz": ["1:1", "1:N", "N:1", "M:N", "1:0..1"],
+        "options_ru": ["1:1", "1:N", "N:1", "M:N", "1:0..1"],
+        "correct_index": 3,
+    },
+    {
+        "category": "database",
+        "text_kz": "Дерекқорлардағы deadlock деген не?",
+        "text_ru": "Что такое deadlock в базах данных?",
+        "options_kz": ["Транзакция өзі күткенде", "Екі немесе одан көп транзакцияның циклдік ресурстарды күтуі", "Индекс зақымдалғанда", "FOREIGN KEY бұзылғанда", "Қосылулар шегі асып кеткенде"],
+        "options_ru": ["Транзакция ждёт сама себя", "Циклическое ожидание ресурсов двумя и более транзакциями", "Повреждение индекса", "Нарушение FOREIGN KEY", "Превышение лимита подключений"],
+        "correct_index": 1,
+    },
+    {
+        "category": "database",
+        "text_kz": "PostgreSQL-де ішінара (partial) индекстерді қалай жасауға болады?",
+        "text_ru": "Как создать частичный (partial) индекс в PostgreSQL?",
+        "options_kz": ["CREATE INDEX-те WHERE қолдану", "CREATE INDEX-те INCLUDE қолдану", "PARTITION BY", "USING GIN", "CONCURRENTLY"],
+        "options_ru": ["Использовать WHERE в CREATE INDEX", "Использовать INCLUDE в CREATE INDEX", "PARTITION BY", "USING GIN", "CONCURRENTLY"],
+        "correct_index": 0,
+    },
 ]
 
 
 async def seed():
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=30) as client:
-        # Статистика до загрузки
         stats_res = await client.get("/admin/quiz/questions/stats")
         if stats_res.status_code == 200:
             s = stats_res.json()
-            print(f"До загрузки → network: {s['network']['count']}/25, database: {s['database']['count']}/25")
+            print(f"До загрузки → network: {s['network']['count']}/25, database: {s['database']['count']}/25\n")
 
         net_ok = net_fail = db_ok = db_fail = 0
 
@@ -85,22 +434,20 @@ async def seed():
             if resp.status_code == 201:
                 if cat == "network": net_ok += 1
                 else: db_ok += 1
-                print(f"  [{i:02d}/50] {label} ✓  {q['text'][:55]}...")
+                print(f"  [{i:02d}/50] {label} ✓  {q['text_ru'][:55]}...")
             else:
                 if cat == "network": net_fail += 1
                 else: db_fail += 1
                 print(f"  [{i:02d}/50] {label} ✗  ({resp.status_code}) {resp.json().get('detail','')}")
 
         print(f"\n{'─'*60}")
-        print(f"  Сети  (network):  добавлено {net_ok}, ошибок {net_fail}")
-        print(f"  БД    (database): добавлено {db_ok}, ошибок {db_fail}")
-        print(f"  Итого: {net_ok + db_ok} вопросов успешно загружено")
+        print(f"  Сети:  добавлено {net_ok}, ошибок {net_fail}")
+        print(f"  БД:    добавлено {db_ok}, ошибок {db_fail}")
 
-        # Финальная статистика
         stats_res = await client.get("/admin/quiz/questions/stats")
         if stats_res.status_code == 200:
             s = stats_res.json()
-            print(f"\nВ базе сейчас → network: {s['network']['count']}/25, database: {s['database']['count']}/25")
+            print(f"\nВ базе → network: {s['network']['count']}/25, database: {s['database']['count']}/25")
 
 
 if __name__ == "__main__":

@@ -52,10 +52,11 @@ class QuizQuestion(Base):
     """
     __tablename__ = "quiz_questions"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    text: Mapped[str] = mapped_column(Text, nullable=False)
-    options: Mapped[list] = mapped_column(JSON, nullable=False)
-    correct_index: Mapped[int] = mapped_column(Integer, nullable=False)
-    # 'network' или 'database'
+    text_kz: Mapped[str] = mapped_column(Text, nullable=False)           # казахский
+    text_ru: Mapped[str] = mapped_column(Text, nullable=False)           # русский
+    options_kz: Mapped[list] = mapped_column(JSON, nullable=False)       # варианты на казахском
+    options_ru: Mapped[list] = mapped_column(JSON, nullable=False)       # варианты на русском
+    correct_index: Mapped[int] = mapped_column(Integer, nullable=False)  # одинаковый для обоих языков
     category: Mapped[str] = mapped_column(String(32), nullable=False, default="network", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     answers: Mapped[list["TeamAnswer"]] = relationship("TeamAnswer", back_populates="question")

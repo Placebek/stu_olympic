@@ -171,8 +171,10 @@ async def create_question(body: QuizQuestionCreate, db: AsyncSession = Depends(g
         )
 
     q = QuizQuestion(
-        text=body.text,
-        options=body.options,
+        text_kz=body.text_kz,
+        text_ru=body.text_ru,
+        options_kz=body.options_kz,
+        options_ru=body.options_ru,
         correct_index=body.correct_index,
         category=body.category,
     )
@@ -199,22 +201,22 @@ async def list_questions(
     return result.scalars().all()
 
 
-@router.get(
-    "/quiz/questions/stats",
-    summary="Статистика вопросов по категориям",
-)
-async def questions_stats(db: AsyncSession = Depends(get_db)):
-    net_res = await db.execute(
-        select(func.count()).select_from(QuizQuestion).where(QuizQuestion.category == "network")
-    )
-    db_res = await db.execute(
-        select(func.count()).select_from(QuizQuestion).where(QuizQuestion.category == "database")
-    )
-    return {
-        "network":  {"count": net_res.scalar(),  "max": MAX_PER_CATEGORY},
-        "database": {"count": db_res.scalar(), "max": MAX_PER_CATEGORY},
-        "total":    net_res.scalar() + db_res.scalar(),
-    }
+# @router.get(
+#     "/quiz/questions/stats",
+#     summary="Статистика вопросов по категориям",
+# )
+# async def questions_stats(db: AsyncSession = Depends(get_db)):
+#     net_res = await db.execute(
+#         select(func.count()).select_from(QuizQuestion).where(QuizQuestion.category == "network")
+#     )
+#     db_res = await db.execute(
+#         select(func.count()).select_from(QuizQuestion).where(QuizQuestion.category == "database")
+#     )
+#     return {
+#         "network":  {"count": net_res.scalar(),  "max": MAX_PER_CATEGORY},
+#         "database": {"count": db_res.scalar(), "max": MAX_PER_CATEGORY},
+#         "total":    net_res.scalar() + db_res.scalar(),
+#     }
 
 
 @router.put(
@@ -229,8 +231,10 @@ async def update_question(
     q = result.scalar_one_or_none()
     if not q:
         raise HTTPException(status_code=404, detail="Вопрос не найден")
-    q.text = body.text
-    q.options = body.options
+    q.text_kz = body.text_kz
+    q.text_ru = body.text_ru
+    q.options_kz = body.options_kz
+    q.options_ru = body.options_ru
     q.correct_index = body.correct_index
     q.category = body.category
     await db.commit()
