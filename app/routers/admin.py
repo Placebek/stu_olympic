@@ -47,7 +47,7 @@ async def list_qr_codes(db: AsyncSession = Depends(get_db)):
 async def list_teams(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Team).order_by(Team.id))
     return [
-        {"id": t.id, "name": t.name, "variant": t.variant,
+        {"id": t.id, "firstname": t.firstname, "lastname": t.lastname, "variant": t.variant,
          "qr_code_id": t.qr_code_id, "created_at": t.created_at}
         for t in result.scalars().all()
     ]
@@ -58,13 +58,13 @@ async def list_teams(db: AsyncSession = Depends(get_db)):
 @router.get("/uploads", summary="Список всех загрузок")
 async def list_uploads(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(Upload, Team.name).join(Team, Upload.team_id == Team.id)
+        select(Upload, Team.firstname, Team.lastname).join(Team, Upload.team_id == Team.id)
         .order_by(Upload.uploaded_at.desc())
     )
     return [
-        {"id": u.id, "team_name": name, "original_name": u.original_name,
+        {"id": u.id, "firstname": firstname, "lastname": lastname, "original_name": u.original_name,
          "filename": u.filename, "uploaded_at": u.uploaded_at}
-        for u, name in result.all()
+        for u, firstname, lastname in result.all()
     ]
 
 
@@ -87,14 +87,14 @@ async def check_upload(
     -  — снять отметку
     """
     result = await db.execute(
-        select(Upload, Team.name).join(Team, Upload.team_id == Team.id)
+        select(Upload, Team.firstname, Team.lastname).join(Team, Upload.team_id == Team.id)
         .where(Upload.id == upload_id)
     )
     row = result.one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Файл не найден")
 
-    upload, team_name = row
+    upload, firstname, lastname = row
     upload.is_checked = body.is_checked
     upload.checked_at = datetime.utcnow() if body.is_checked else None
     await db.commit()
@@ -102,7 +102,8 @@ async def check_upload(
 
     return UploadResponse(
         id=upload.id,
-        team_name=team_name,
+        firstname=firstname,
+        lastname=lastname,
         filename=upload.filename,
         original_name=upload.original_name,
         uploaded_at=upload.uploaded_at,
@@ -118,21 +119,21 @@ async def check_upload(
 async def unchecked_uploads(db: AsyncSession = Depends(get_db)):
     """Только файлы которые ещё не проверены (is_checked=False)."""
     result = await db.execute(
-        select(Upload, Team.name)
+        select(Upload, Team.firstname, Team.lastname)
         .join(Team, Upload.team_id == Team.id)
         .where(Upload.is_checked == False)
         .order_by(Upload.uploaded_at.asc())
     )
     return [
         {
-            "id": u.id, "team_name": name, "variant": None,
+            "id": u.id, "firstname": firstname, "lastname": lastname, "variant": None,
             "original_name": u.original_name,
             "filename": u.filename,
             "uploaded_at": u.uploaded_at,
             "is_checked": u.is_checked,
             "is_correct": u.is_correct,
         }
-        for u, name in result.all()
+        for u, firstname, lastname in result.all()
     ]
 
 
@@ -143,14 +144,14 @@ async def unchecked_uploads(db: AsyncSession = Depends(get_db)):
 async def checked_uploads(db: AsyncSession = Depends(get_db)):
     """Все проверенные файлы с флагом is_correct."""
     result = await db.execute(
-        select(Upload, Team.name)
+        select(Upload, Team.firstname, Team.lastname)
         .join(Team, Upload.team_id == Team.id)
         .where(Upload.is_checked == True)
         .order_by(Upload.checked_at.desc())
     )
     return [
         {
-            "id": u.id, "team_name": name,
+            "id": u.id, "firstname": firstname, "lastname": lastname,
             "original_name": u.original_name,
             "filename": u.filename,
             "uploaded_at": u.uploaded_at,
@@ -158,7 +159,7 @@ async def checked_uploads(db: AsyncSession = Depends(get_db)):
             "is_checked": u.is_checked,
             "is_correct": u.is_correct,
         }
-        for u, name in result.all()
+        for u, firstname, lastname in result.all()
     ]
 
 
@@ -291,10 +292,11 @@ async def quiz_summary(db: AsyncSession = Depends(get_db)):
     teams = (await db.execute(select(Team).order_by(Team.id))).scalars().all()
     rows = []
     for team in teams:
-        r = await _build_team_result(team.id, team.name, team.variant, db)
+        r = await _build_team_result(team.id, team.firstname, team.lastname, team.variant, db)
         rows.append({
             "team_id":         team.id,
-            "team_name":       team.name,
+            "firstname":       team.firstname,
+            "lastname":        team.lastname,
             "variant":         team.variant,
             "is_completed":    r.is_completed,
             "answered":        f"{r.answered_count}/{r.total_questions}",
@@ -313,7 +315,7 @@ async def quiz_summary(db: AsyncSession = Depends(get_db)):
 )
 async def all_quiz_results(db: AsyncSession = Depends(get_db)):
     teams = (await db.execute(select(Team).order_by(Team.id))).scalars().all()
-    return [await _build_team_result(t.id, t.name, t.variant, db) for t in teams]
+    return [await _build_team_result(t.id, t.firstname, t.lastname, t.variant, db) for t in teams]
 
 
 @router.get(
@@ -326,4 +328,4 @@ async def team_quiz_result(team_id: int, db: AsyncSession = Depends(get_db)):
     team = result.scalar_one_or_none()
     if not team:
         raise HTTPException(status_code=404, detail="Команда не найдена")
-    return await _build_team_result(team.id, team.name, team.variant, db)
+    return await _build_team_result(team.id, team.firstname, team.lastname, team.variant, db)

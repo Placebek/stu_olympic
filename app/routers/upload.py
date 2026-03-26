@@ -60,7 +60,7 @@ async def upload_file(
 
     return UploadResponse(
         id=upload.id,
-        team_name=current_team.name,
+        team_name=f"{current_team.firstname} {current_team.lastname}",
         filename=upload.filename,
         original_name=upload.original_name,
         uploaded_at=upload.uploaded_at,
@@ -82,7 +82,7 @@ async def get_my_uploads(
     return [
         UploadResponse(
             id=u.id,
-            team_name=current_team.name,
+            team_name=f"{current_team.firstname} {current_team.lastname}",
             filename=u.filename,
             original_name=u.original_name,
             uploaded_at=u.uploaded_at,

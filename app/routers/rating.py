@@ -72,7 +72,9 @@ async def get_rating(db: AsyncSession = Depends(get_db)):
 
         entries.append({
             "team_id":        team.id,
-            "team_name":      team.name,
+            "firstname":      team.firstname,
+            "lastname":       team.lastname,
+            "team_name":      team.firstname + " " + team.lastname,
             "variant":        team.variant,
             "quiz_score":     quiz_score,
             "quiz_correct":   quiz_correct,
@@ -109,7 +111,7 @@ async def get_my_rating(
     return TeamRatingEntry(
         rank=len(all_rating) + 1,
         team_id=current_team.id,
-        team_name=current_team.name,
+        team_name=current_team.firstname + " " + current_team.lastname,
         variant=current_team.variant,
         quiz_score=0.0, quiz_correct=0, quiz_total=QUIZ_TOTAL,
         quiz_completed=False,

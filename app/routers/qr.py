@@ -39,12 +39,12 @@ async def verify_qr(
         return QRVerifyResponse(
             valid=True,
             team_exists=True,
-            team_name=team.name,
-            message=f"Команда '{team.name}' уже зарегистрирована. Введите название для входа.",
+            team_name=team.firstname + " " + team.lastname,
+            message=f"Пользователь '{team.firstname} {team.lastname}' уже зарегистрирован. Введите имя и фамилию для входа.",
         )
 
     return QRVerifyResponse(
         valid=True,
         team_exists=False,
-        message="QR код действителен. Вы первый! Введите название команды.",
+        message="QR код действителен. Вы первый! Введите имя и фамилию для входа.",
     )

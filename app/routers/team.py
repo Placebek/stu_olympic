@@ -52,17 +52,18 @@ async def register_team(
         )
 
     # Проверяем уникальность названия команды
-    existing_name = await db.execute(select(Team).where(Team.name == body.team_name))
+    existing_name = await db.execute(select(Team).where(Team.firstname == body.firstname, Team.lastname == body.lastname))
     if existing_name.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Команда с названием '{body.team_name}' уже существует",
+            detail=f"Пользователь '{body.firstname} {body.lastname}' уже существует",
         )
 
     # Считаем сколько команд уже есть, чтобы определить team_id для варианта
     # Создаём команду с временным токеном, потом обновим
     team = Team(
-        name=body.team_name,
+        firstname=body.firstname,
+        lastname=body.lastname,
         qr_code_id=qr.id,
         variant=1,   # временно, пересчитаем после получения id
         token="",
@@ -75,7 +76,7 @@ async def register_team(
     team.variant = variant
 
     # Генерируем токен
-    token = create_team_token(team.id, team.name)
+    token = create_team_token(team.id, team.firstname, team.lastname)
     team.token = token
 
     # Помечаем QR как использованный
@@ -85,10 +86,12 @@ async def register_team(
     await db.refresh(team)
 
     return TeamResponse(
-        team_name=team.name,
+        firstname=team.firstname,
+        lastname=team.lastname,
+        team_name=f"{team.firstname} {team.lastname}",
         variant=team.variant,
         token=token,
-        message=f"Команда '{team.name}' успешно зарегистрирована! Ваш вариант: {variant}",
+        message=f"Пользователь '{team.firstname} {team.lastname}' успешно зарегистрирован! Ваш вариант: {variant}",
     )
 
 
@@ -120,18 +123,20 @@ async def join_team(
         )
 
     # Проверяем название
-    if team.name.strip().lower() != body.team_name.strip().lower():
+    if f"{team.firstname} {team.lastname}".strip().lower() != f"{body.firstname} {body.lastname}".strip().lower():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверное название команды",
         )
 
     # Генерируем свежий токен для этого участника (или возвращаем командный)
-    token = create_team_token(team.id, team.name)
+    token = create_team_token(team.id, team.firstname, team.lastname)
 
     return TeamResponse(
-        team_name=team.name,
+        firstname=team.firstname,
+        lastname=team.lastname,
+        team_name=f"{team.firstname} {team.lastname}",
         variant=team.variant,
         token=token,
-        message=f"Добро пожаловать в команду '{team.name}'! Ваш вариант: {team.variant}",
+        message=f"Добро пожаловать '{team.firstname} {team.lastname}'! Ваш вариант: {team.variant}",
     )

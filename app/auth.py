@@ -13,11 +13,12 @@ from app.models.models import Team
 bearer_scheme = HTTPBearer()
 
 
-def create_team_token(team_id: int, team_name: str) -> str:
+def create_team_token(team_id: int, firstname: str, lastname: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
         "sub": str(team_id),
-        "team_name": team_name,
+        "firstname": firstname,
+        "lastname": lastname,
         "exp": expire,
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -47,6 +48,6 @@ async def get_current_team(
     if not team:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Команда не найдена",
+            detail="Человек не найден",
         )
     return team
