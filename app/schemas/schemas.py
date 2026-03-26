@@ -47,6 +47,7 @@ class UploadResponse(BaseModel):
     uploaded_at: datetime
     is_checked: bool
     checked_at: datetime | None = None
+    is_correct: bool | None = None   # None = не проверено, True = верно, False = неверно
 
     class Config:
         from_attributes = True
@@ -54,6 +55,7 @@ class UploadResponse(BaseModel):
 
 class UploadCheckUpdate(BaseModel):
     is_checked: bool
+    is_correct: bool | None = None   # обязательно указать при is_checked=True
 
 
 # ---------- QUIZ — Admin ----------
@@ -168,3 +170,22 @@ class BulkAnswerResult(BaseModel):
     is_completed: bool
     score_percent: float
     results: list[AnswerResult]
+
+
+# ---------- РЕЙТИНГ ----------
+class TeamRatingEntry(BaseModel):
+    rank: int
+    team_id: int
+    team_name: str
+    variant: int
+    # Тест
+    quiz_score: float         # % правильных ответов в тесте
+    quiz_correct: int         # кол-во правильных ответов
+    quiz_total: int           # всего вопросов
+    quiz_completed: bool
+    # Задачи (загруженные файлы)
+    tasks_submitted: int      # сколько файлов сдано
+    tasks_correct: int        # сколько задач зачтено (is_correct=True)
+    tasks_checked: int        # сколько проверено
+    # Итог
+    total_score: float        # итоговый балл (можно настроить формулу)

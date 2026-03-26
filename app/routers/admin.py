@@ -116,7 +116,7 @@ async def check_upload(
     summary="Список непроверенных файлов",
 )
 async def unchecked_uploads(db: AsyncSession = Depends(get_db)):
-    """Только файлы которые ещё не проверены."""    
+    """Только файлы которые ещё не проверены (is_checked=False)."""
     result = await db.execute(
         select(Upload, Team.name)
         .join(Team, Upload.team_id == Team.id)
@@ -125,11 +125,38 @@ async def unchecked_uploads(db: AsyncSession = Depends(get_db)):
     )
     return [
         {
-            "id": u.id, "team_name": name,
+            "id": u.id, "team_name": name, "variant": None,
             "original_name": u.original_name,
             "filename": u.filename,
             "uploaded_at": u.uploaded_at,
             "is_checked": u.is_checked,
+            "is_correct": u.is_correct,
+        }
+        for u, name in result.all()
+    ]
+
+
+@router.get(
+    "/uploads/checked",
+    summary="Список проверенных файлов (с результатом)",
+)
+async def checked_uploads(db: AsyncSession = Depends(get_db)):
+    """Все проверенные файлы с флагом is_correct."""
+    result = await db.execute(
+        select(Upload, Team.name)
+        .join(Team, Upload.team_id == Team.id)
+        .where(Upload.is_checked == True)
+        .order_by(Upload.checked_at.desc())
+    )
+    return [
+        {
+            "id": u.id, "team_name": name,
+            "original_name": u.original_name,
+            "filename": u.filename,
+            "uploaded_at": u.uploaded_at,
+            "checked_at": u.checked_at,
+            "is_checked": u.is_checked,
+            "is_correct": u.is_correct,
         }
         for u, name in result.all()
     ]

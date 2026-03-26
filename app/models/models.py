@@ -38,6 +38,7 @@ class Upload(Base):
     file_path: Mapped[str] = mapped_column(Text, nullable=False)
     is_checked: Mapped[bool] = mapped_column(Boolean, default=False)
     checked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    is_correct: Mapped[bool | None] = mapped_column(Boolean, nullable=True)  # None = ещё не проверено
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     team: Mapped["Team"] = relationship("Team", back_populates="uploads")
 
