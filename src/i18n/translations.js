@@ -27,6 +27,8 @@ export const translations = {
             copyright: "OlympIQ Platform",
             success: "Тіркелу сәтті аяқталды!",
             loginSuccess: "Кіру сәтті аяқталды!",
+            userCode: "Қатысушы коды",
+            userCodeDesc: "Ұйымдастырушы берген кодты немесе үстелдегі кодты енгізіңіз",
         },
         home: {
             greeting: "Сәлем,",
@@ -224,6 +226,8 @@ export const translations = {
             copyright: "OlympIQ Platform",
             success: "Регистрация прошла успешно!",
             loginSuccess: "Вход выполнен успешно!",
+            userCode: "Код участника",
+            userCodeDesc: "Введите код, предоставленный организаторами или на столе",
         },
         home: {
             greeting: "Привет,",
