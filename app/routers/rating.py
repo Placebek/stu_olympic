@@ -11,7 +11,7 @@ router = APIRouter(prefix="/rating", tags=["Rating"])
 
 QUIZ_WEIGHT = 1
 TASK_WEIGHT = 5
-QUIZ_TOTAL  = 10
+QUIZ_TOTAL  = 50
 
 
 @router.get("/", response_model=list[TeamRatingEntry], summary="Общий рейтинг")

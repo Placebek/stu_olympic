@@ -22,8 +22,8 @@ from app.schemas.schemas import (
 
 router = APIRouter(prefix="/quiz", tags=["Quiz"])
 
-PER_CATEGORY = 5
-QUESTIONS_PER_SESSION = PER_CATEGORY * 2  # 10
+PER_CATEGORY = 25
+QUESTIONS_PER_SESSION = PER_CATEGORY * 2  # 50
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────

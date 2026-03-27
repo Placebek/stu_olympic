@@ -59,13 +59,14 @@ async def list_teams(db: AsyncSession = Depends(get_db)):
 @router.get("/uploads", summary="Список всех загрузок")
 async def list_uploads(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(Upload, Team.name).join(Team, Upload.team_id == Team.id)
+        select(Upload, Team).join(Team, Upload.team_id == Team.id)
         .order_by(Upload.uploaded_at.desc())
     )
     return [
-        {"id": u.id, "team_name": name, "original_name": u.original_name,
-         "filename": u.filename, "uploaded_at": u.uploaded_at}
-        for u, name in result.all()
+        {"id": u.id, "first_name": t.first_name, "last_name": t.last_name,
+         "original_name": u.original_name, "filename": u.filename,
+         "uploaded_at": u.uploaded_at, "is_checked": u.is_checked, "is_correct": u.is_correct}
+        for u, t in result.all()
     ]
 
 
@@ -88,27 +89,30 @@ async def check_upload(
     -  — снять отметку
     """
     result = await db.execute(
-        select(Upload, Team.name).join(Team, Upload.team_id == Team.id)
+        select(Upload, Team).join(Team, Upload.team_id == Team.id)
         .where(Upload.id == upload_id)
     )
     row = result.one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Файл не найден")
 
-    upload, team_name = row
+    upload, team = row
     upload.is_checked = body.is_checked
     upload.checked_at = datetime.utcnow() if body.is_checked else None
+    upload.is_correct = body.is_correct if body.is_checked else None
     await db.commit()
     await db.refresh(upload)
 
     return UploadResponse(
         id=upload.id,
-        team_name=team_name,
+        first_name=team.first_name,
+        last_name=team.last_name,
         filename=upload.filename,
         original_name=upload.original_name,
         uploaded_at=upload.uploaded_at,
         is_checked=upload.is_checked,
         checked_at=upload.checked_at,
+        is_correct=upload.is_correct,
     )
 
 
@@ -119,21 +123,21 @@ async def check_upload(
 async def unchecked_uploads(db: AsyncSession = Depends(get_db)):
     """Только файлы которые ещё не проверены (is_checked=False)."""
     result = await db.execute(
-        select(Upload, Team.name)
+        select(Upload, Team)
         .join(Team, Upload.team_id == Team.id)
         .where(Upload.is_checked == False)
         .order_by(Upload.uploaded_at.asc())
     )
     return [
         {
-            "id": u.id, "team_name": name, "variant": None,
+            "id": u.id, "first_name": t.first_name, "last_name": t.last_name,
             "original_name": u.original_name,
             "filename": u.filename,
             "uploaded_at": u.uploaded_at,
             "is_checked": u.is_checked,
             "is_correct": u.is_correct,
         }
-        for u, name in result.all()
+        for u, t in result.all()
     ]
 
 
@@ -144,14 +148,14 @@ async def unchecked_uploads(db: AsyncSession = Depends(get_db)):
 async def checked_uploads(db: AsyncSession = Depends(get_db)):
     """Все проверенные файлы с флагом is_correct."""
     result = await db.execute(
-        select(Upload, Team.name)
+        select(Upload, Team)
         .join(Team, Upload.team_id == Team.id)
         .where(Upload.is_checked == True)
         .order_by(Upload.checked_at.desc())
     )
     return [
         {
-            "id": u.id, "team_name": name,
+            "id": u.id, "first_name": t.first_name, "last_name": t.last_name,
             "original_name": u.original_name,
             "filename": u.filename,
             "uploaded_at": u.uploaded_at,
@@ -159,7 +163,7 @@ async def checked_uploads(db: AsyncSession = Depends(get_db)):
             "is_checked": u.is_checked,
             "is_correct": u.is_correct,
         }
-        for u, name in result.all()
+        for u, t in result.all()
     ]
 
 
