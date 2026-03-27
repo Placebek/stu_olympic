@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.database import get_db
-from app.models.models import QRCode, Team, Upload, QuizQuestion, TeamQuizSession
+from app.models.models import QRCode, Team, Upload, QuizQuestion, TeamQuizSession, TeamAnswer
 from app.schemas.schemas import QuizQuestionCreate, QuizQuestionResponse, TeamQuizResult, UploadCheckUpdate, UploadResponse
 from app.routers.quiz import _build_team_result
 
@@ -332,3 +332,141 @@ async def team_quiz_result(team_id: int, db: AsyncSession = Depends(get_db)):
     if not team:
         raise HTTPException(status_code=404, detail="Команда не найдена")
     return await _build_team_result(team.id, team.first_name, team.last_name, team.variant, db)
+
+@router.get(
+    "/quiz/results/{team_id}/detailed",
+    summary="Детальные результаты команды с текстами вопросов и вариантами ответов",
+)
+async def team_quiz_result_detailed(
+    team_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Полная информация по каждому ответу команды:
+    - текст вопроса (kz + ru)
+    - все варианты ответов (kz + ru)
+    - правильный индекс и текст правильного ответа
+    - выбранный индекс и текст выбранного ответа
+    - верно/неверно
+    - категория (network / database)
+    - время ответа
+    """
+    result = await db.execute(select(Team).where(Team.id == team_id))
+    team = result.scalar_one_or_none()
+    if not team:
+        raise HTTPException(status_code=404, detail="Команда не найдена")
+
+    sess_res = await db.execute(
+        select(TeamQuizSession).where(TeamQuizSession.team_id == team_id)
+    )
+    session = sess_res.scalar_one_or_none()
+
+    if not session:
+        return {
+            "team_id": team_id,
+            "first_name": team.first_name,
+            "last_name": team.last_name,
+            "variant": team.variant,
+            "is_completed": False,
+            "total_questions": 50,
+            "answered_count": 0,
+            "correct_count": 0,
+            "network_correct": 0,
+            "database_correct": 0,
+            "score_percent": 0.0,
+            "answers": [],
+        }
+
+    # Загружаем все ответы
+    ans_res = await db.execute(
+        select(TeamAnswer).where(TeamAnswer.session_id == session.id)
+        .order_by(TeamAnswer.answered_at)
+    )
+    answers = ans_res.scalars().all()
+
+    # Загружаем все вопросы сессии (не только отвеченные — чтобы показать пропущенные)
+    all_q_res = await db.execute(
+        select(QuizQuestion).where(QuizQuestion.id.in_(session.question_ids))
+    )
+    q_map = {q.id: q for q in all_q_res.scalars().all()}
+
+    # Индекс ответов по question_id
+    ans_map = {a.question_id: a for a in answers}
+
+    correct_total = 0
+    network_correct = 0
+    database_correct = 0
+
+    detailed_answers = []
+    for qid in session.question_ids:
+        q = q_map.get(qid)
+        if not q:
+            continue
+        ans = ans_map.get(qid)
+
+        if ans:
+            chosen_index = ans.chosen_index
+            is_correct = ans.is_correct
+            answered_at = ans.answered_at
+            chosen_text_kz = q.options_kz[chosen_index] if 0 <= chosen_index < len(q.options_kz) else "—"
+            chosen_text_ru = q.options_ru[chosen_index] if 0 <= chosen_index < len(q.options_ru) else "—"
+            status_label = "✓ Верно" if is_correct else "✗ Неверно"
+            if is_correct:
+                correct_total += 1
+                if q.category == "network":
+                    network_correct += 1
+                else:
+                    database_correct += 1
+        else:
+            chosen_index = None
+            is_correct = None
+            answered_at = None
+            chosen_text_kz = None
+            chosen_text_ru = None
+            status_label = "— Не отвечено"
+
+        detailed_answers.append({
+            "question_id": qid,
+            "category": q.category,
+
+            # Вопрос
+            "question_text_kz": q.text_kz,
+            "question_text_ru": q.text_ru,
+
+            # Все варианты
+            "options_kz": q.options_kz,
+            "options_ru": q.options_ru,
+
+            # Правильный ответ
+            "correct_index": q.correct_index,
+            "correct_text_kz": q.options_kz[q.correct_index] if 0 <= q.correct_index < len(q.options_kz) else "—",
+            "correct_text_ru": q.options_ru[q.correct_index] if 0 <= q.correct_index < len(q.options_ru) else "—",
+
+            # Ответ команды
+            "chosen_index": chosen_index,
+            "chosen_text_kz": chosen_text_kz,
+            "chosen_text_ru": chosen_text_ru,
+
+            "is_correct": is_correct,
+            "status": status_label,
+            "answered_at": answered_at,
+        })
+
+    score = round(correct_total / 50 * 100, 1) if answers else 0.0
+
+    return {
+        "team_id": team_id,
+        "first_name": team.first_name,
+        "last_name": team.last_name,
+        "variant": team.variant,
+        "is_completed": session.is_completed,
+        "started_at": session.started_at,
+        "completed_at": session.completed_at,
+        "total_questions": len(session.question_ids),
+        "answered_count": len(answers),
+        "correct_count": correct_total,
+        "network_correct": network_correct,
+        "database_correct": database_correct,
+        "score_percent": score,
+        "answers": detailed_answers,
+    }
