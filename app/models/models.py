@@ -17,8 +17,9 @@ class QRCode(Base):
 class Team(Base):
     __tablename__ = "teams"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    firstname: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
-    lastname: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    first_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    name: Mapped[str] = mapped_column(String(256), unique=True, nullable=False, index=True)  # first_name + last_name
     qr_code_id: Mapped[int] = mapped_column(Integer, ForeignKey("qr_codes.id"), unique=True)
     variant: Mapped[int] = mapped_column(Integer, nullable=False)
     token: Mapped[str] = mapped_column(String(512), nullable=False)

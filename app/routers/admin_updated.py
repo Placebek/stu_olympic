@@ -56,7 +56,7 @@ async def list_teams(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Team).order_by(Team.id))
     teams = result.scalars().all()
     return [
-        {"id": t.id, "firstname": t.firstname, "lastname": t.lastname, "variant": t.variant,
+        {"id": t.id, "first_name": t.first_name, "last_name": t.last_name, "variant": t.variant,
          "qr_code_id": t.qr_code_id, "created_at": t.created_at}
         for t in teams
     ]
@@ -67,15 +67,15 @@ async def list_teams(db: AsyncSession = Depends(get_db)):
 @router.get("/uploads", summary="Список всех загруженных файлов")
 async def list_uploads(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(Upload, Team.firstname, Team.lastname)
+        select(Upload, Team.first_name, Team.last_name)
         .join(Team, Upload.team_id == Team.id)
         .order_by(Upload.uploaded_at.desc())
     )
     rows = result.all()
     return [
-        {"id": u.id, "firstname": firstname, "lastname": lastname, "original_name": u.original_name,
+        {"id": u.id, "first_name": first_name, "last_name": last_name, "original_name": u.original_name,
          "filename": u.filename, "uploaded_at": u.uploaded_at}
-        for u, firstname, lastname in rows
+        for u, first_name, last_name in rows
     ]
 
 
@@ -187,7 +187,7 @@ async def all_quiz_results(db: AsyncSession = Depends(get_db)):
 
     results = []
     for team in teams:
-        r = await _build_team_result(team.id, team.firstname, team.lastname, team.variant, db)
+        r = await _build_team_result(team.id, team.first_name, team.last_name, team.variant, db)
         results.append(r)
     return results
 
@@ -207,7 +207,7 @@ async def team_quiz_result(
     if not team:
         raise HTTPException(status_code=404, detail="Команда не найдена")
 
-    return await _build_team_result(team.id, team.firstname, team.lastname, team.variant, db)
+    return await _build_team_result(team.id, team.first_name, team.last_name, team.variant, db)
 
 
 @router.get(
@@ -221,11 +221,11 @@ async def quiz_summary(db: AsyncSession = Depends(get_db)):
 
     rows = []
     for team in teams:
-        r = await _build_team_result(team.id, team.firstname, team.lastname, team.variant, db)
+        r = await _build_team_result(team.id, team.first_name, team.last_name, team.variant, db)
         rows.append({
             "team_id": team.id,
-            "firstname": team.firstname,
-            "lastname": team.lastname,
+            "first_name": team.first_name,
+            "last_name": team.last_name,
             "variant": team.variant,
             "is_completed": r.is_completed,
             "answered": f"{r.answered_count}/{r.total_questions}",

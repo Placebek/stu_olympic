@@ -60,12 +60,14 @@ async def upload_file(
 
     return UploadResponse(
         id=upload.id,
-        team_name=f"{current_team.firstname} {current_team.lastname}",
+        first_name=current_team.first_name,
+        last_name=current_team.last_name,
         filename=upload.filename,
         original_name=upload.original_name,
         uploaded_at=upload.uploaded_at,
         is_checked=upload.is_checked,
         checked_at=upload.checked_at,
+        is_correct=upload.is_correct,
     )
 
 
@@ -82,12 +84,14 @@ async def get_my_uploads(
     return [
         UploadResponse(
             id=u.id,
-            team_name=f"{current_team.firstname} {current_team.lastname}",
+            first_name=current_team.first_name,
+            last_name=current_team.last_name,
             filename=u.filename,
             original_name=u.original_name,
             uploaded_at=u.uploaded_at,
             is_checked=u.is_checked,
             checked_at=u.checked_at,
+            is_correct=u.is_correct,
         )
         for u in uploads
     ]

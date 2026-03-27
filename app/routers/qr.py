@@ -16,10 +16,9 @@ async def verify_qr(
 ):
     """
     Шаг 1 — проверка QR кода.
-    Возвращает:
-    - valid: существует ли такой код в БД
-    - team_exists: создана ли уже команда для этого QR
-    - team_name: название команды (если уже создана)
+    - valid=false: недействительный QR
+    - team_exists=false: первый участник → показать форму с именем/фамилией
+    - team_exists=true: повторный вход → ввести своё имя и фамилию
     """
     result = await db.execute(select(QRCode).where(QRCode.code == body.code))
     qr = result.scalar_one_or_none()
@@ -31,7 +30,6 @@ async def verify_qr(
             message="Недействительный QR код",
         )
 
-    # Проверяем, создана ли уже команда
     team_result = await db.execute(select(Team).where(Team.qr_code_id == qr.id))
     team = team_result.scalar_one_or_none()
 
@@ -39,12 +37,13 @@ async def verify_qr(
         return QRVerifyResponse(
             valid=True,
             team_exists=True,
-            team_name=team.firstname + " " + team.lastname,
-            message=f"Пользователь '{team.firstname} {team.lastname}' уже зарегистрирован. Введите имя и фамилию для входа.",
+            first_name=team.first_name,
+            last_name=team.last_name,
+            message=f"Стол зарегистрирован на {team.last_name} {team.first_name}. Введите своё имя и фамилию для входа.",
         )
 
     return QRVerifyResponse(
         valid=True,
         team_exists=False,
-        message="QR код действителен. Вы первый! Введите имя и фамилию для входа.",
+        message="QR код действителен. Вы первый! Введите своё имя и фамилию.",
     )

@@ -10,33 +10,33 @@ class QRVerifyRequest(BaseModel):
 class QRVerifyResponse(BaseModel):
     valid: bool
     team_exists: bool
-    firstname: str | None = None
-    lastname: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     message: str
 
 
 # ---------- TEAM ----------
 class TeamCreateRequest(BaseModel):
     code: str
-    firstname: str
-    lastname: str
+    first_name: str
+    last_name: str
 
-    @field_validator("firstname", "lastname")
+    @field_validator("first_name", "last_name")
     @classmethod
     def name_not_empty(cls, v: str) -> str:
         v = v.strip()
         if not v:
-            raise ValueError("Имя и фамилия участника не могут быть пустыми")
+            raise ValueError("Поле не может быть пустым")
         return v
 
 class TeamJoinRequest(BaseModel):
     code: str
-    firstname: str
-    lastname: str
+    first_name: str
+    last_name: str
 
 class TeamResponse(BaseModel):
-    firstname: str
-    lastname: str
+    first_name: str
+    last_name: str
     variant: int
     token: str
     message: str
@@ -45,8 +45,8 @@ class TeamResponse(BaseModel):
 # ---------- UPLOAD ----------
 class UploadResponse(BaseModel):
     id: int
-    firstname: str
-    lastname: str
+    first_name: str
+    last_name: str
     filename: str
     original_name: str
     uploaded_at: datetime
@@ -151,8 +151,8 @@ class TeamAnswerDetail(BaseModel):
 
 class TeamQuizResult(BaseModel):
     team_id: int
-    firstname: str
-    lastname: str
+    first_name: str
+    last_name: str
     variant: int
     is_completed: bool
     total_questions: int
@@ -182,8 +182,8 @@ class BulkAnswerResult(BaseModel):
 class TeamRatingEntry(BaseModel):
     rank: int
     team_id: int
-    firstname: str
-    lastname: str
+    first_name: str
+    last_name: str
     variant: int
     # Тест
     quiz_score: float         # % правильных ответов в тесте

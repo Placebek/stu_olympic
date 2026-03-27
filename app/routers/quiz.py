@@ -288,13 +288,13 @@ async def get_my_results(
     current_team: Team = Depends(get_current_team),
     db: AsyncSession = Depends(get_db),
 ):
-    return await _build_team_result(current_team.id, current_team.firstname, current_team.lastname, current_team.variant, db)
+    return await _build_team_result(current_team.id, current_team.first_name, current_team.last_name, current_team.variant, db)
 
 
 # ── внутренняя функция ────────────────────────────────────────────────────────
 
 async def _build_team_result(
-    team_id: int, firstname: str, lastname: str, variant: int, db: AsyncSession
+    team_id: int, first_name: str, last_name: str, variant: int, db: AsyncSession
 ) -> TeamQuizResult:
     sess_res = await db.execute(
         select(TeamQuizSession).where(TeamQuizSession.team_id == team_id)
@@ -302,19 +302,11 @@ async def _build_team_result(
     session = sess_res.scalar_one_or_none()
 
     empty = TeamQuizResult(
-        team_id=team_id,
-        firstname=firstname,
-        lastname=lastname,
-        team_name=f"{firstname} {lastname}",
-        variant=variant,
-        is_completed=False,
-        total_questions=QUESTIONS_PER_SESSION,
-        answered_count=0,
-        correct_count=0,
-        network_correct=0,
-        database_correct=0,
-        score_percent=0.0,
-        answers=[],
+        team_id=team_id, first_name=first_name, last_name=last_name, variant=variant,
+        is_completed=False, total_questions=QUESTIONS_PER_SESSION,
+        answered_count=0, correct_count=0,
+        network_correct=0, database_correct=0,
+        score_percent=0.0, answers=[],
     )
     if not session:
         return empty
@@ -352,11 +344,7 @@ async def _build_team_result(
     ]
 
     return TeamQuizResult(
-        team_id=team_id,
-        firstname=firstname,
-        lastname=lastname,
-        team_name=f"{firstname} {lastname}",
-        variant=variant,
+        team_id=team_id, first_name=first_name, last_name=last_name, variant=variant,
         is_completed=session.is_completed,
         total_questions=QUESTIONS_PER_SESSION,
         answered_count=len(answers),

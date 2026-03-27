@@ -39,6 +39,6 @@ async def get_my_tasks(current_team: Team = Depends(get_current_team)):
 
     return {
         "variant": variant,
-        "team_name": current_team.firstname + " " + current_team.lastname,
+        "team_name": current_team.first_name + " " + current_team.last_name,
         "tasks": tasks,               # список из 3 элементов
     }

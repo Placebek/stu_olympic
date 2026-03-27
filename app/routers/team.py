@@ -12,18 +12,6 @@ router = APIRouter(prefix="/team", tags=["Team"])
 
 
 def compute_variant(team_id: int, total_variants: int) -> int:
-    """
-    Распределяем варианты по командам.
-    Используем (team_id - 1) % total_variants + 1
-    чтобы варианты шли 1,2,3,4,5,1,2,3,4,5,...
-    и не было варианта 0.
-    Например:
-      team_id=1  → вариант 1
-      team_id=5  → вариант 5
-      team_id=6  → вариант 1
-      team_id=10 → вариант 5
-      team_id=11 → вариант 1
-    """
     return (team_id - 1) % total_variants + 1
 
 
@@ -33,65 +21,57 @@ async def register_team(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Шаг 2а — первый участник создаёт команду.
-    Вызывается когда team_exists=False.
+    Первый участник регистрирует команду (стол).
+    Принимает имя и фамилию — они становятся идентификатором команды.
     """
-    # Проверяем QR
     qr_result = await db.execute(select(QRCode).where(QRCode.code == body.code))
     qr = qr_result.scalar_one_or_none()
-
     if not qr:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="QR код не найден")
+        raise HTTPException(status_code=404, detail="QR код не найден")
 
-    # Проверяем — вдруг уже занят (race condition)
     existing_team_for_qr = await db.execute(select(Team).where(Team.qr_code_id == qr.id))
     if existing_team_for_qr.scalar_one_or_none():
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Для этого QR кода уже создана команда. Используйте /team/join",
+            status_code=409,
+            detail="Для этого QR кода уже зарегистрирован участник. Используйте /team/join",
         )
 
-    # Проверяем уникальность названия команды
-    existing_name = await db.execute(select(Team).where(Team.firstname == body.firstname, Team.lastname == body.lastname))
+    # Уникальное имя = Фамилия + Имя
+    full_name = f"{body.last_name} {body.first_name}".strip()
+
+    existing_name = await db.execute(select(Team).where(Team.name == full_name))
     if existing_name.scalar_one_or_none():
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Пользователь '{body.firstname} {body.lastname}' уже существует",
+            status_code=409,
+            detail=f"Участник '{full_name}' уже зарегистрирован",
         )
 
-    # Считаем сколько команд уже есть, чтобы определить team_id для варианта
-    # Создаём команду с временным токеном, потом обновим
     team = Team(
-        firstname=body.firstname,
-        lastname=body.lastname,
+        first_name=body.first_name,
+        last_name=body.last_name,
+        name=full_name,
         qr_code_id=qr.id,
-        variant=1,   # временно, пересчитаем после получения id
+        variant=1,
         token="",
     )
     db.add(team)
-    await db.flush()  # получаем team.id без коммита
+    await db.flush()
 
-    # Вычисляем вариант по id команды
     variant = compute_variant(team.id, settings.TOTAL_VARIANTS)
     team.variant = variant
-
-    # Генерируем токен
-    token = create_team_token(team.id, team.firstname, team.lastname)
+    token = create_team_token(team.id, team.name)
     team.token = token
-
-    # Помечаем QR как использованный
     qr.is_used = True
 
     await db.commit()
     await db.refresh(team)
 
     return TeamResponse(
-        firstname=team.firstname,
-        lastname=team.lastname,
-        team_name=f"{team.firstname} {team.lastname}",
+        first_name=team.first_name,
+        last_name=team.last_name,
         variant=team.variant,
         token=token,
-        message=f"Пользователь '{team.firstname} {team.lastname}' успешно зарегистрирован! Ваш вариант: {variant}",
+        message=f"Добро пожаловать, {body.first_name} {body.last_name}! Ваш вариант: {variant}",
     )
 
 
@@ -101,42 +81,37 @@ async def join_team(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Шаг 2б — остальные участники присоединяются к команде.
-    Вызывается когда team_exists=True.
-    Проверяет что название команды совпадает с тем, что зарегистрировано для этого QR.
+    Остальные участники присоединяются к столу по QR.
+    Вводят своё имя и фамилию — проверяется что QR уже занят
+    (то есть первый участник уже зарегистрировался).
     """
-    # Проверяем QR
     qr_result = await db.execute(select(QRCode).where(QRCode.code == body.code))
     qr = qr_result.scalar_one_or_none()
-
     if not qr:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="QR код не найден")
+        raise HTTPException(status_code=404, detail="QR код не найден")
 
-    # Ищем команду по QR
     team_result = await db.execute(select(Team).where(Team.qr_code_id == qr.id))
     team = team_result.scalar_one_or_none()
-
     if not team:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Команда для этого QR не найдена. Попросите первого участника зарегистрировать команду.",
+            status_code=404,
+            detail="Стол ещё не зарегистрирован. Попросите первого участника отсканировать QR.",
         )
 
-    # Проверяем название
-    if f"{team.firstname} {team.lastname}".strip().lower() != f"{body.firstname} {body.lastname}".strip().lower():
+    # Проверяем что имя+фамилия совпадают с зарегистрированным
+    full_name = f"{body.last_name} {body.first_name}".strip()
+    if team.name.strip().lower() != full_name.lower():
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неверное название команды",
+            status_code=400,
+            detail="Имя и фамилия не совпадают с зарегистрированным участником",
         )
 
-    # Генерируем свежий токен для этого участника (или возвращаем командный)
-    token = create_team_token(team.id, team.firstname, team.lastname)
+    token = create_team_token(team.id, team.name)
 
     return TeamResponse(
-        firstname=team.firstname,
-        lastname=team.lastname,
-        team_name=f"{team.firstname} {team.lastname}",
+        first_name=team.first_name,
+        last_name=team.last_name,
         variant=team.variant,
         token=token,
-        message=f"Добро пожаловать '{team.firstname} {team.lastname}'! Ваш вариант: {team.variant}",
+        message=f"Добро пожаловать, {team.first_name} {team.last_name}! Ваш вариант: {team.variant}",
     )
