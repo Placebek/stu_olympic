@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-
+import hashlib
 from app.database import get_db
 from app.models.models import QRCode, Team, Upload, QuizQuestion, TeamQuizSession, TeamAnswer
 from app.schemas.schemas import QuizQuestionCreate, QuizQuestionResponse, TeamQuizResult, UploadCheckUpdate, UploadResponse
@@ -16,20 +16,60 @@ MAX_PER_CATEGORY = 25  # максимум 25 network + 25 database
 
 
 # ─── QR ──────────────────────────────────────────────────────────────────────
+def _generate_fixed_codes(count: int = 100) -> list[str]:
+    """
+    Генерирует фиксированный список 6-значных цифровых кодов.
+    Коды всегда одинаковые — детерминированы через SHA-256 от индекса.
+    Уникальность гарантирована (проверяется внутри).
+    """
+    codes = []
+    seen = set()
+    i = 0
+    while len(codes) < count:
+        raw = hashlib.sha256(f"olympic_qr_salt_{i}".encode()).hexdigest()
+        # Берём первые 6 цифр из хеша
+        digits = "".join(c for c in raw if c.isdigit())[:6]
+        if len(digits) == 6 and digits not in seen:
+            seen.add(digits)
+            codes.append(digits)
+        i += 1
+    return codes
+ 
+ 
+# Фиксированный список — вычисляется один раз при старте
+FIXED_QR_CODES = _generate_fixed_codes(100)
 
-@router.post("/seed-qr", summary="Создать 100 уникальных QR кодов")
+
+@router.post("/seed-qr", summary="Создать 100 фиксированных 6-значных QR кодов")
 async def seed_qr_codes(db: AsyncSession = Depends(get_db)):
+    """
+    Создаёт 100 QR кодов с фиксированными 6-значными кодами.
+    Коды всегда одинаковые — при очистке БД и повторном запуске
+    генерируются те же самые коды.
+    """
     count_res = await db.execute(select(func.count()).select_from(QRCode))
     existing = count_res.scalar()
     if existing >= 100:
         return {"message": f"QR коды уже созданы ({existing} шт.)", "created": 0}
-    to_create = 100 - existing
-    db.add_all([QRCode(code=secrets.token_urlsafe(32)) for _ in range(to_create)])
+ 
+    # Берём только те коды которых ещё нет в БД
+    existing_codes_res = await db.execute(select(QRCode.code))
+    existing_codes = {row[0] for row in existing_codes_res.all()}
+ 
+    to_add = [
+        QRCode(code=code)
+        for code in FIXED_QR_CODES
+        if code not in existing_codes
+    ]
+ 
+    db.add_all(to_add)
     await db.commit()
+ 
     result = await db.execute(select(QRCode).order_by(QRCode.id))
     all_codes = result.scalars().all()
     return {
-        "message": f"Создано {to_create} QR кодов", "created": to_create,
+        "message": f"Создано {len(to_add)} QR кодов",
+        "created": len(to_add),
         "total": len(all_codes),
         "codes": [{"id": qr.id, "code": qr.code, "is_used": qr.is_used} for qr in all_codes],
     }
