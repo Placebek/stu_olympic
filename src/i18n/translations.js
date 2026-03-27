@@ -39,6 +39,7 @@ export const translations = {
             attempts: "Әрекет",
             finalSubmit: "Соңғы жіберу",
             rulesTitle: "Ережелер мен талаптар",
+            hours: "3 сағат",
             rules: [
                 {
                     title: "Уақыт шектеулі",
@@ -82,12 +83,12 @@ export const translations = {
             send: "Жіберу",
             noFiles: "Файлдар жүктелмеген",
             quizBanner: "Тапсырмамен қатар тест те бар!",
-            quizBannerSub: "10 сұрақ: 5 желі + 5 деректер қоры",
+            quizBannerSub: "50 сұрақ: 25 желі + 25 деректер қоры",
             goQuiz: "Тестке өту →",
         },
         quiz: {
             title: "Тест",
-            subtitle: "10 сұрақ: 5 желі + 5 деректер қоры",
+            subtitle: "50 сұрақ: 25 желі + 25 деректер қоры",
             loading: "Сұрақтар жүктелуде...",
             networkSection: "Желілер",
             dbSection: "Деректер қоры",
@@ -235,6 +236,7 @@ export const translations = {
             attempts: "Попытки",
             finalSubmit: "Финальная отправка",
             rulesTitle: "Правила и требования",
+            hours: "3 часа",
             rules: [
                 {
                     title: "Время ограничено",
@@ -278,12 +280,12 @@ export const translations = {
             send: "Отправить",
             noFiles: "Файлы не загружены",
             quizBanner: "Помимо задачи есть тест!",
-            quizBannerSub: "10 вопросов: 5 по сетям + 5 по БД",
+            quizBannerSub: "50 вопросов: 25 по сетям + 25 по БД",
             goQuiz: "Перейти к тесту →",
         },
         quiz: {
             title: "Тест",
-            subtitle: "10 вопросов: 5 по сетям + 5 по БД",
+            subtitle: "50 вопросов: 25 по сетям + 25 по БД",
             loading: "Загрузка вопросов...",
             networkSection: "Сети",
             dbSection: "Базы данных",

@@ -53,8 +53,8 @@ export const disqualifyTeam = (teamId, reason) =>
 
 export const adminGetTeams = () => api.get("/admin/teams");
 
-export const adminCheckUpload = (id, checked) =>
-    api.patch(`/admin/uploads/${id}/check`, { is_checked: checked });
+export const adminCheckUpload = (id, is_checked, is_correct = null) =>
+    api.patch(`/admin/uploads/${id}/check`, { is_checked, is_correct });
 
 export const adminLogin = (password) => api.post("/admin/login", { password });
 
@@ -77,5 +77,9 @@ export const adminGetAllResults = () => api.get("/admin/quiz/results");
 export const adminGetTeamResult = (teamId) =>
     api.get(`/admin/quiz/results/${teamId}`);
 export const adminGetSummary = () => api.get("/admin/quiz/summary");
+export const adminGetTeamResultDetailed = (teamId) =>
+    api.get(`/admin/quiz/results/${teamId}/detailed`);
+export const downloadTeamFile = (fileId) =>
+    api.get(`/admin/download/${fileId}`);
 
 export default api;
