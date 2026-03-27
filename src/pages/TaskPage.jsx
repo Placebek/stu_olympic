@@ -83,7 +83,7 @@ export default function TaskPage() {
         setSubmitting(true);
         try {
             const fd = new FormData();
-            files.forEach((f) => fd.append("files", f));
+            files.forEach((f) => fd.append("file", f));
             await submitFiles(fd);
             markSubmitted();
             setSubmitted(true);
@@ -106,14 +106,9 @@ export default function TaskPage() {
     if (loading)
         return (
             <div className="min-h-screen flex items-center justify-center relative z-10">
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: "linear",
-                    }}
-                    className="w-10 h-10 rounded-full border-2 border-indigo-200 border-t-indigo-500"
+                <div
+                    className="w-10 h-10 rounded-full border-2 border-indigo-200 border-t-indigo-500 animate-spin"
+                    style={{ animationDuration: '1.5s' }}
                 />
             </div>
         );

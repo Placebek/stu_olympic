@@ -89,10 +89,9 @@ export default function QuizPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center relative z-10">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-        className="w-10 h-10 rounded-full border-2 border-indigo-200 border-t-indigo-500"
+      <div
+        className="w-10 h-10 rounded-full border-2 border-indigo-200 border-t-indigo-500 animate-spin"
+        style={{ animationDuration: '1.5s' }}
       />
     </div>
   )
@@ -130,11 +129,14 @@ export default function QuizPage() {
           {/* Progress bar */}
           <div className="mt-4 flex items-center gap-3">
             <div className="flex-1 h-2 bg-white/60 rounded-full overflow-hidden">
-              <motion.div
+              <div
                 className="h-full rounded-full"
-                style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }}
-                animate={{ width: `${totalQ ? (answeredCount / totalQ) * 100 : 0}%` }}
-                transition={{ type: 'spring', stiffness: 100 }}
+                style={{
+                  background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+                  transform: `scaleX(${totalQ ? answeredCount / totalQ : 0})`,
+                  transformOrigin: 'left center',
+                  transition: 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
+                }}
               />
             </div>
             <span className="text-xs font-medium text-slate-500 whitespace-nowrap">

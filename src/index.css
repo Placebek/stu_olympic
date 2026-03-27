@@ -132,6 +132,66 @@ body {
   border-radius: 50%;
   filter: blur(80px);
   opacity: 0.5;
+  will-change: transform;
+}
+
+.aurora-blob-1 {
+  width: 600px; height: 600px;
+  top: -10%; left: -10%;
+  background: radial-gradient(circle, rgba(165,180,252,0.55) 0%, transparent 70%);
+}
+.aurora-blob-2 {
+  width: 700px; height: 700px;
+  top: 20%; right: -15%;
+  background: radial-gradient(circle, rgba(196,181,253,0.45) 0%, transparent 70%);
+}
+.aurora-blob-3 {
+  width: 500px; height: 500px;
+  bottom: -10%; left: 20%;
+  background: radial-gradient(circle, rgba(147,210,255,0.4) 0%, transparent 70%);
+}
+.aurora-blob-4 {
+  width: 400px; height: 400px;
+  bottom: 10%; right: 10%;
+  background: radial-gradient(circle, rgba(251,207,232,0.45) 0%, transparent 70%);
+}
+
+/* Run aurora animations only when user hasn't requested reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  .aurora-blob-1 { animation: aurora1 18s ease-in-out infinite; }
+  .aurora-blob-2 { animation: aurora2 22s ease-in-out infinite; animation-delay: -3s; }
+  .aurora-blob-3 { animation: aurora3 26s ease-in-out infinite; animation-delay: -6s; }
+  .aurora-blob-4 { animation: aurora4 30s ease-in-out infinite; animation-delay: -10s; }
+}
+
+@keyframes aurora1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%       { transform: translate3d(40px, -30px, 0) scale(1.08); }
+  66%       { transform: translate3d(-20px, 20px, 0) scale(0.96); }
+}
+@keyframes aurora2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%       { transform: translate3d(-50px, 40px, 0) scale(0.95); }
+  66%       { transform: translate3d(30px, -20px, 0) scale(1.1); }
+}
+@keyframes aurora3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%       { transform: translate3d(30px, -40px, 0) scale(1.05); }
+  66%       { transform: translate3d(-40px, 30px, 0) scale(0.98); }
+}
+@keyframes aurora4 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  33%       { transform: translate3d(-20px, 50px, 0); }
+  66%       { transform: translate3d(50px, -30px, 0); }
+}
+
+/* Floating icon animation (used in RegisterPage logo) */
+@media (prefers-reduced-motion: no-preference) {
+  .icon-float { animation: iconFloat 4s ease-in-out infinite; }
+}
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
 }
 
 /* ── Scrollbar ──────────────────────────────────────────────────── */
@@ -215,4 +275,6 @@ body {
 /* ── Responsive nav ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .aurora-blob { filter: blur(50px); }
+  /* On mobile show only 2 blobs to reduce GPU load */
+  .aurora-blob-3, .aurora-blob-4 { display: none; }
 }

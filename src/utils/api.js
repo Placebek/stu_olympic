@@ -13,17 +13,17 @@ api.interceptors.request.use((config) => {
 
 // ── AUTH ──────────────────────────────────────────────────────────
 export const validateQr = (code) => api.post("/qr/verify", { code });
-export const registerTeam = (code, teamName) =>
-    api.post("/team/register", { code, team_name: teamName });
-export const loginTeam = (code, teamName) =>
-    api.post("/team/join", { code, team_name: teamName });
+export const registerTeam = (code, firstName, lastName) =>
+    api.post("/team/register", { code, first_name: firstName, last_name: lastName });
+export const loginTeam = (code, firstName, lastName) =>
+    api.post("/team/join", { code, first_name: firstName, last_name: lastName });
 // ── TASKS ─────────────────────────────────────────────────────────
 export const getTask = (variant) => api.get("/tasks/my");   // оставил старое имя
 export const getMyTasks = () => api.get("/tasks/my");       // добавил для удобства
 
 // ── SUBMISSIONS / UPLOADS ─────────────────────────────────────────
 export const submitFiles = (formData) =>
-    api.post("/submissions", formData, {
+    api.post("/upload/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
     });
 

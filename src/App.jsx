@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { MotionConfig } from 'framer-motion'
 import { useState } from 'react'
 
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -15,6 +16,8 @@ import TaskPage     from './pages/TaskPage'
 import QuizPage     from './pages/QuizPage'
 import ResultsPage  from './pages/ResultsPage'
 import AdminPage    from './pages/AdminPage'
+import ResultsNotReady from './pages/ResultsNotReady'
+
 
 function ProtectedRoute({ children }) {
   const { token } = useAuth()
@@ -57,7 +60,7 @@ function AppInner() {
         <Route path="/"        element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
         <Route path="/task"    element={<ProtectedRoute><TaskPage /></ProtectedRoute>} />
         <Route path="/quiz"    element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
-        <Route path="/results" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
+        <Route path="/results" element={<ProtectedRoute><ResultsNotReady /></ProtectedRoute>} />
 
         <Route path="/x9k2-admin"   element={<AdminPage />} />
         <Route path="/x9k2-admin/*" element={<AdminPage />} />
@@ -89,11 +92,13 @@ function AppInner() {
 export default function App() {
   return (
     <BrowserRouter>
-      <LangProvider>
-        <AuthProvider>
-          <AppInner />
-        </AuthProvider>
-      </LangProvider>
+      <MotionConfig reducedMotion="user">
+        <LangProvider>
+          <AuthProvider>
+            <AppInner />
+          </AuthProvider>
+        </LangProvider>
+      </MotionConfig>
     </BrowserRouter>
   )
 }
