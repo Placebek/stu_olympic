@@ -10,84 +10,17 @@ import LangSwitcher from "../components/LangSwitcher";
 import toast from "react-hot-toast";
 import { Zap, User, ArrowRight, AlertCircle, CheckCircle2, Hash } from "lucide-react";
 
-// ── Slide variants ────────────────────────────────────────────────
 const stepVariants = {
     enter:  { opacity: 0, x: 28 },
     center: { opacity: 1, x: 0  },
     exit:   { opacity: 0, x: -28 },
 };
 
-export default function RegisterPage() {
-    const navigate = useNavigate();
-    const { login } = useAuth();
-    const { t } = useLang();
-
-    // "code" → "name" → "exists"  | "error"
-    const [step, setStep]           = useState("code");
-    const [code, setCode]           = useState("");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName]   = useState("");
-    const [loading, setLoading]     = useState(false);
-
-    const fullName = () => `${firstName.trim()} ${lastName.trim()}`;
-
-    // ── Step 1: validate the manually entered code ────────────────
-    const handleValidateCode = async (e) => {
-        e.preventDefault();
-        const trimmed = code.trim();
-        if (!trimmed) { toast.error(t.register?.codeRequired || "Кодты енгізіңіз"); return; }
-
-        setLoading(true);
-        try {
-            const res = await validateQr(trimmed);
-            if (res.data.team_exists === false) {
-                setStep("name");
-            } else {
-                setStep("exists");
-            }
-        } catch {
-            setStep("error");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // ── Step 2a: new registration ─────────────────────────────────
-    const handleRegister = async (e) => {
-        e.preventDefault();
-        if (!firstName.trim() || !lastName.trim()) { toast.error(t.register?.nameMin || "Аты-жөнді толтырыңыз"); return; }
-        setLoading(true);
-        try {
-            const res = await registerTeam(code.trim(), firstName, lastName);
-            login(res.data.token, { name: fullName(), variant: res.data.variant });
-            toast.success(t.register?.success || "Тіркелді! 🎉");
-            navigate("/");
-        } catch (err) {
-            toast.error(err.response?.data?.message || err.response?.data?.detail || "Қате");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // ── Step 2b: login to existing slot ──────────────────────────
-    const handleLoginExisting = async (e) => {
-        e.preventDefault();
-        if (!firstName.trim() || !lastName.trim()) { toast.error(t.register?.nameMin || "Аты-жөнді толтырыңыз"); return; }
-        setLoading(true);
-        try {
-            const res = await loginTeam(code.trim(), firstName, lastName);
-            login(res.data.token, { name: fullName(), variant: res.data.variant });
-            toast.success(t.register?.loginSuccess || "Қош келдіңіз! 👋");
-            navigate("/");
-        } catch (err) {
-            toast.error(err.response?.data?.message || err.response?.data?.detail || "Қате");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // ── Shared name form ──────────────────────────────────────────
-    const NameForm = ({ onSubmit }) => (
+// ── NameForm вынесен ЗА пределы RegisterPage ─────────────────────
+// Если объявить его ВНУТРИ родителя, React пересоздаёт его при каждом
+// setState родителя → инпут теряет фокус при каждом нажатии клавиши.
+function NameForm({ t, code, firstName, lastName, onFirstName, onLastName, onSubmit, onChangeCode, loading }) {
+    return (
         <form onSubmit={onSubmit} className="space-y-3">
             <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">
@@ -99,9 +32,9 @@ export default function RegisterPage() {
                         className="input-glass w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
                         placeholder={t.register?.firstNamePlaceholder || "Аты"}
                         value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
+                        onChange={(e) => onFirstName(e.target.value)}
                         maxLength={30}
-                        autoFocus
+                        autoComplete="given-name"
                     />
                 </div>
             </div>
@@ -115,19 +48,22 @@ export default function RegisterPage() {
                         className="input-glass w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
                         placeholder={t.register?.lastNamePlaceholder || "Тегі"}
                         value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
+                        onChange={(e) => onLastName(e.target.value)}
                         maxLength={30}
+                        autoComplete="family-name"
                     />
                 </div>
             </div>
 
-            {/* Show entered code as read-only reminder */}
+            {/* Code reminder */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-500"
                 style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)" }}>
                 <Hash size={11} className="text-indigo-400" />
                 <span>{t.register?.codeLabel || "Код"}:</span>
-                <span className="font-mono font-semibold text-indigo-600 tracking-wider">{code.trim().toUpperCase()}</span>
-                <button type="button" onClick={() => { setStep("code"); setFirstName(""); setLastName(""); }}
+                <span className="font-mono font-semibold text-indigo-600 tracking-wider">
+                    {code.trim().toUpperCase()}
+                </span>
+                <button type="button" onClick={onChangeCode}
                     className="ml-auto text-slate-400 hover:text-indigo-500 transition-colors underline text-[10px]">
                     {t.register?.changeCode || "Өзгерту"}
                 </button>
@@ -146,6 +82,82 @@ export default function RegisterPage() {
             </motion.button>
         </form>
     );
+}
+
+// ── Main page ─────────────────────────────────────────────────────
+export default function RegisterPage() {
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    const { t } = useLang();
+
+    const [step, setStep]           = useState("code");
+    const [code, setCode]           = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName]   = useState("");
+    const [loading, setLoading]     = useState(false);
+
+    const fullName = () => `${firstName.trim()} ${lastName.trim()}`;
+
+    const handleValidateCode = async (e) => {
+        e.preventDefault();
+        const trimmed = code.trim();
+        if (!trimmed) { toast.error(t.register?.codeRequired || "Кодты енгізіңіз"); return; }
+        setLoading(true);
+        try {
+            const res = await validateQr(trimmed);
+            setStep(res.data.team_exists === false ? "name" : "exists");
+        } catch {
+            setStep("error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        if (!firstName.trim() || !lastName.trim()) { toast.error(t.register?.nameMin || "Аты-жөнді толтырыңыз"); return; }
+        setLoading(true);
+        try {
+            const res = await registerTeam(code.trim(), firstName, lastName);
+            login(res.data.token, { name: fullName(), variant: res.data.variant });
+            toast.success(t.register?.success || "Тіркелді! 🎉");
+            navigate("/");
+        } catch (err) {
+            toast.error(err.response?.data?.message || err.response?.data?.detail || "Қате");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLoginExisting = async (e) => {
+        e.preventDefault();
+        if (!firstName.trim() || !lastName.trim()) { toast.error(t.register?.nameMin || "Аты-жөнді толтырыңыз"); return; }
+        setLoading(true);
+        try {
+            const res = await loginTeam(code.trim(), firstName, lastName);
+            login(res.data.token, { name: fullName(), variant: res.data.variant });
+            toast.success(t.register?.loginSuccess || "Қош келдіңіз! 👋");
+            navigate("/");
+        } catch (err) {
+            toast.error(err.response?.data?.message || err.response?.data?.detail || "Қате");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleChangeCode = () => {
+        setStep("code");
+        setFirstName("");
+        setLastName("");
+    };
+
+    const nameFormProps = {
+        t, code, firstName, lastName,
+        onFirstName:  setFirstName,
+        onLastName:   setLastName,
+        onChangeCode: handleChangeCode,
+        loading,
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center relative p-4">
@@ -167,7 +179,8 @@ export default function RegisterPage() {
                         style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 8px 32px rgba(99,102,241,0.4)" }}>
                         <Zap size={28} color="white" fill="white" />
                     </div>
-                    <h1 className="text-3xl font-bold" style={{ fontFamily: '"Clash Display", sans-serif', color: "#1e1b4b" }}>
+                    <h1 className="text-3xl font-bold"
+                        style={{ fontFamily: '"Clash Display", sans-serif', color: "#1e1b4b" }}>
                         Olymp<span style={{ color: "#6366f1" }}>IQ</span>
                     </h1>
                     <p className="text-slate-500 mt-1 text-sm">{t.register?.subtitle}</p>
@@ -176,7 +189,7 @@ export default function RegisterPage() {
                 <div className="glass-strong rounded-3xl p-8">
                     <AnimatePresence mode="wait">
 
-                        {/* ── Step: enter code ── */}
+                        {/* ── code ── */}
                         {step === "code" && (
                             <motion.div key="code"
                                 variants={stepVariants} initial="enter" animate="center" exit="exit"
@@ -187,15 +200,15 @@ export default function RegisterPage() {
                                         <Hash size={18} className="text-indigo-600" />
                                     </div>
                                     <div>
-                                        <h2 className="font-semibold text-slate-800" style={{ fontFamily: '"Clash Display", sans-serif' }}>
+                                        <h2 className="font-semibold text-slate-800"
+                                            style={{ fontFamily: '"Clash Display", sans-serif' }}>
                                             {t.register?.userCode || "Қатысушы коды"}
                                         </h2>
                                         <p className="text-xs text-slate-500">
-                                            {t.register?.userCodeDesc || "Ұйымдастырушы берген кодты немесе үстелдегі кодты енгізіңіз"}
+                                            {t.register?.userCodeDesc || "Ұйымдастырушы берген кодты енгізіңіз"}
                                         </p>
                                     </div>
                                 </div>
-
                                 <form onSubmit={handleValidateCode} className="space-y-3">
                                     <div className="relative">
                                         <Hash size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -210,7 +223,6 @@ export default function RegisterPage() {
                                             spellCheck={false}
                                         />
                                     </div>
-
                                     <motion.button
                                         type="submit"
                                         disabled={loading || !code.trim()}
@@ -226,7 +238,7 @@ export default function RegisterPage() {
                             </motion.div>
                         )}
 
-                        {/* ── Step: new registration ── */}
+                        {/* ── name ── */}
                         {step === "name" && (
                             <motion.div key="name"
                                 variants={stepVariants} initial="enter" animate="center" exit="exit"
@@ -236,17 +248,20 @@ export default function RegisterPage() {
                                         <CheckCircle2 size={20} className="text-emerald-500" />
                                     </div>
                                     <div>
-                                        <h2 className="font-semibold text-slate-800" style={{ fontFamily: '"Clash Display", sans-serif' }}>
+                                        <h2 className="font-semibold text-slate-800"
+                                            style={{ fontFamily: '"Clash Display", sans-serif' }}>
                                             {t.register?.validTitle || "Код расталды"}
                                         </h2>
-                                        <p className="text-xs text-slate-500">{t.register?.validSub || "Аты-жөніңізді енгізіңіз"}</p>
+                                        <p className="text-xs text-slate-500">
+                                            {t.register?.validSub || "Аты-жөніңізді енгізіңіз"}
+                                        </p>
                                     </div>
                                 </div>
-                                <NameForm onSubmit={handleRegister} />
+                                <NameForm {...nameFormProps} onSubmit={handleRegister} />
                             </motion.div>
                         )}
 
-                        {/* ── Step: code already taken, confirm identity ── */}
+                        {/* ── exists ── */}
                         {step === "exists" && (
                             <motion.div key="exists"
                                 variants={stepVariants} initial="enter" animate="center" exit="exit"
@@ -256,7 +271,8 @@ export default function RegisterPage() {
                                         <AlertCircle size={20} className="text-amber-500" />
                                     </div>
                                     <div>
-                                        <h2 className="font-semibold text-slate-800" style={{ fontFamily: '"Clash Display", sans-serif' }}>
+                                        <h2 className="font-semibold text-slate-800"
+                                            style={{ fontFamily: '"Clash Display", sans-serif' }}>
                                             {t.register?.alreadyRegistered || "Код бос емес"}
                                         </h2>
                                         <p className="text-xs text-slate-500">
@@ -264,18 +280,15 @@ export default function RegisterPage() {
                                         </p>
                                     </div>
                                 </div>
-
-                                {/* Subtle warning */}
                                 <div className="rounded-xl px-3 py-2 mb-4 text-xs text-amber-700"
                                     style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
                                     {t.register?.existsHint || "Бұл код басқа қатысушыға тіркелген. Егер сіз болсаңыз — аты-жөніңізді дәл енгізіңіз."}
                                 </div>
-
-                                <NameForm onSubmit={handleLoginExisting} />
+                                <NameForm {...nameFormProps} onSubmit={handleLoginExisting} />
                             </motion.div>
                         )}
 
-                        {/* ── Step: error ── */}
+                        {/* ── error ── */}
                         {step === "error" && (
                             <motion.div key="error"
                                 variants={stepVariants} initial="enter" animate="center" exit="exit"
@@ -285,7 +298,8 @@ export default function RegisterPage() {
                                     style={{ background: "rgba(239,68,68,0.1)" }}>
                                     <AlertCircle size={28} className="text-red-500" />
                                 </div>
-                                <h2 className="font-semibold text-slate-800 mb-2" style={{ fontFamily: '"Clash Display", sans-serif' }}>
+                                <h2 className="font-semibold text-slate-800 mb-2"
+                                    style={{ fontFamily: '"Clash Display", sans-serif' }}>
                                     {t.register?.errorTitle || "Код жарамсыз"}
                                 </h2>
                                 <p className="text-sm text-slate-500 mb-6">
