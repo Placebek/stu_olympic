@@ -112,7 +112,7 @@ export default function ResultsTab({ t }) {
                                     className={`border-b border-white/20 hover:bg-white/20 transition-colors ${i % 2 === 0 ? "" : "bg-white/5"}`}
                                 >
                                     <td className="px-4 py-3 font-semibold text-slate-800">
-                                        {r.team_name}
+                                        {r.first_name && r.last_name}
                                     </td>
                                     <td className="px-4 py-3 text-slate-500">#{r.variant}</td>
                                     <td className="px-4 py-3 text-slate-600">{r.total_questions}</td>
